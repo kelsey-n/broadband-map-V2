@@ -1,35 +1,24 @@
-// Set mapbox gl access token:
-//mapboxgl.accessToken = 'pk.eyJ1Ijoia25hbmFuIiwiYSI6ImNrbDlsMXNmNjI3MnEyb25yYjNremFwYXQifQ.l6loLOR-pOL_U2kzWBSQNQ';
-
 var beforeMap = new mapboxgl.Map({
     container: 'before',
     style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
-    center: [-75.5912853, 43.0384658], // starting position [lng, lat]
-    zoom: 6, // starting zoom
-    pitch: 0
+    bounds: [[-80.00125, 40.40703], [-71.64066, 45.08304]] // so initial queryRenderedFeatures will capture all tracts
 });
 
 var afterMap = new mapboxgl.Map({
     container: 'after',
     style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
-    center: [-75.5912853, 43.0384658], // starting position [lng, lat]
-    zoom: 6, // starting zoom
-    pitch: 0
+    bounds: [[-80.00125, 40.40703], [-71.64066, 45.08304]]
 });
 
 // A selector or reference to HTML element
 var container = '#comparison-container';
 
-var map = new mapboxgl.Compare(beforeMap, afterMap, container, {
-    // Set this to enable comparing two maps by mouse movement:
-    // mousemove: true
-});
+var map = new mapboxgl.Compare(beforeMap, afterMap, container);
 
 // Add navigation control:
-// map.addControl(new mapboxgl.NavigationControl({
-//   showCompass: false,
-//   showZoom: true
-// }));
+afterMap.addControl(new mapboxgl.NavigationControl({
+  showCompass: false
+}));
 
 // 'column name in data': 'display value for frontend of visualization'
 var colName_to_displayVal = {
@@ -43,11 +32,11 @@ var colName_to_displayVal = {
   'Number of Speed Tests (ML)': 'speedtests_ml',
   'Average Weighted Download Speed (Ook)': 'avgwt_downloadspeed_ook',
   'Average Weighted Upload Speed (Ook)': 'avgwt_uploadspeed_ook',
-  'Number of Speed Tests (Ook)': 'Number of Speed Tests (Ook)speedtests_ook',
+  'Number of Speed Tests (Ook)': 'speedtests_ook',
   'Number of Internet Providers (FCC)': 'numproviders_fcc',
   'Average Fraction Coverage (FCC)': 'avg_fractioncoverage_fcc',
   'Average Weighted Maximum Advertised Download Speed (FCC)': 'avgwt_maxaddown_fcc',
-  'Average Weighted Maximum Upload Download Speed (FCC)': 'avgwt_maxadup_fcc',
+  'Average Weighted Maximum Advertised Upload Speed (FCC)': 'avgwt_maxadup_fcc',
   'Broadband Score': 'dummy_score_for_testing'
 }
 
@@ -58,6 +47,27 @@ $.each(colName_to_displayVal, function(key, value) {
     `)
 })
 
+// Obj var to hold arrays of all property values
+var featuresObj = {};
+$.each(colName_to_displayVal, function(key, value) {
+  featuresObj[`${value}`] = []
+});
+
+// After map loads, qRF to get properties for charts & percentile calcs
+afterMap.on('load', function() {
+  var testarr = afterMap.queryRenderedFeatures()
+  //console.log(testarr)
+  var tractset = new Set() //to capture unique tracts since qRF captures dupes
+  testarr.forEach((el) => {
+    if (!tractset.has(el.properties.censustract)) {
+      for (const [key, value] of Object.entries(featuresObj)) {
+        featuresObj[`${key}`].push(el.properties[`${key}`])
+      };
+      tractset.add(el.properties.censustract)
+    };
+  });
+  console.log(featuresObj); // TO BE REMOVED
+});
 
 // Function to determine when the sidenav is open and what it is populated with
 function openNav() {
@@ -83,18 +93,33 @@ function closeNav() {
   $('.sidenav-button').removeClass('sidenav-button-active');
 }
 
+//Function to calculate percentiles
+function percentileCalc(arr) {
+  arr.sort();
+  var len =  arr.length;
+  var per20 =  Math.floor(len*0.2) - 1;
+  var per40 = Math.floor(len*0.4) - 1;
+  var per60 =  Math.floor(len*0.6) - 1;
+  var per80 =  Math.floor(len*0.8) - 1;
+  return [arr[per20], arr[per40], arr[per60], arr[per80]]
+}
+
 // variables to hold the user's selection of variables to display:
 var first_var = 'Broadband Score';
 var second_var = 'Broadband Score';
+var features = []; // IS THIS BEING USED??????!!!!!!!!!
 
 // this function will update the variable selections on the first dropdown menu for variable selection:
 $("#first-dropdown li a").click(function() {
-  first_var = $(this).text() //$(this).data('value') - this is a string AND it is updating the global first_var variable BUT still throwing error when we show the layer... `'${$(this).data('value')}'`
+  first_var = $(this).text()
   console.log('local first_var:', first_var)
   console.log(jQuery.type(first_var))
   $(this).parents(".dropdown").find('.btn').html($(this).text() + ' <span class="caret"></span>');
   // $(this).parents(".dropdown").find('.btn').val($(this).data('value')); // "allows you to have different display text and data value for each element - from SO"
 
+  var firstarr = featuresObj[`${colName_to_displayVal[first_var]}`]
+  var percentiles = percentileCalc(firstarr)
+  console.log(percentiles)
   // show fill layer for first variable
   beforeMap.setLayoutProperty('scores_layer', 'visibility','none');
   beforeMap.setLayoutProperty('first_selected_layer', 'visibility','visible');
@@ -102,21 +127,13 @@ $("#first-dropdown li a").click(function() {
     'step',
     ['get', colName_to_displayVal[first_var]],
     sequential_colors[0],
-    25, sequential_colors[1],
-    100, sequential_colors[2],
-    200, sequential_colors[3],
-    230, sequential_colors[4],
+    percentiles[0], sequential_colors[1],
+    percentiles[1], sequential_colors[2],
+    percentiles[2], sequential_colors[3],
+    percentiles[3], sequential_colors[4],
   ])
-  // afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
-  //   'step',
-  //   ['get', colName_to_displayVal[first_var]],
-  //   sequential_colors[0],
-  //   25, sequential_colors[1],
-  //   100, sequential_colors[2],
-  //   200, sequential_colors[3],
-  //   230, sequential_colors[4],
-  // ]);
 });
+
 
 // this function will update the variable selections on the second dropdown menu for variable selection:
 $("#second-dropdown li a").click(function() {
@@ -127,16 +144,20 @@ $("#second-dropdown li a").click(function() {
   $(this).parents(".dropdown").find('.btn').html($(this).text() + ' <span class="caret"></span>');
   // $(this).parents(".dropdown").find('.btn').val($(this).data('value')); // "allows you to have different display text and data value for each element - from SO"
 
+  var secondarr = featuresObj[`${colName_to_displayVal[second_var]}`]
+  var percentiles = percentileCalc(secondarr)
+  console.log(percentiles)
+
   afterMap.setLayoutProperty('scores_layer', 'visibility','none');
   afterMap.setLayoutProperty('second_selected_layer', 'visibility','visible');
   afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
     'step',
     ['get', colName_to_displayVal[second_var]],
     sequential_colors[0],
-    25, sequential_colors[1],
-    100, sequential_colors[2],
-    200, sequential_colors[3],
-    230, sequential_colors[4],
+    percentiles[0], sequential_colors[1],
+    percentiles[1], sequential_colors[2],
+    percentiles[2], sequential_colors[3],
+    percentiles[3], sequential_colors[4],
   ]);
 });
 
@@ -145,10 +166,10 @@ var sequential_colors = ['#8A8AFF','#5C5CFF','#2E2EFF','#0000FF','#0000A3']; //b
 var diverging_colors = ['#d7191c','#fdae61','#ffffbf','#a6d96a','#1a9641'] //red --> green
 
 // Function to add styling for hovered census tract
-// beforeMap.on('style.load', function() {
-//
-//   openNav(); //load welcome message on load
-//
+beforeMap.on('style.load', function() {
+
+  openNav(); //load welcome message on load
+
 //   // add an empty data source, which we will use to highlight the census tract that the user is hovering over
 //   beforeMap.addSource('highlight-tract-source', {
 //     type: 'geojson',
@@ -186,7 +207,7 @@ var diverging_colors = ['#d7191c','#fdae61','#ffffbf','#a6d96a','#1a9641'] //red
 //     }
 //   });
 //
-// })
+})
 
 const REQUEST_GET_MAX_URL_LENGTH = 2048;
 
@@ -353,7 +374,6 @@ async function getTileSources() {
   const response = await fetch(request);
   return (await response.json()).metadata.tilejson.vector.tiles
 }
-
 
 // Create a popup, but don't add it to the map yet. This will be the hover popup
 var popup = new mapboxgl.Popup({
