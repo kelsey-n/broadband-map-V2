@@ -20,7 +20,7 @@ afterMap.addControl(new mapboxgl.NavigationControl({
   showCompass: false
 }));
 
-// enable tooltips 
+// enable tooltips
 $(function () {
   $('[data-toggle="tooltip"]').tooltip()
 })
@@ -75,7 +75,7 @@ afterMap.on('load', function() {
       tractset.add(el.properties.censustract)
     };
   });
-  console.log(featuresObj); // TO BE REMOVED
+  //console.log(featuresObj); // TO BE REMOVED
 });
 
 // Function to determine when the sidenav is open and what it is populated with
@@ -118,7 +118,7 @@ function equalIntervals(arr) {
 // variables to hold the user's selection of variables to display:
 var first_var = 'Broadband Score';
 var second_var = 'Broadband Score';
-var features = []; // IS THIS BEING USED??????!!!!!!!!!
+//var features = []; // IS THIS BEING USED??????!!!!!!!!!
 var firstarr = [];
 var secondarr = [];
 checkbox = document.getElementById('checkbox');
@@ -127,28 +127,51 @@ checkbox = document.getElementById('checkbox');
 $("#first-dropdown li a").click(function() {
   first_var = $(this).text();
   first_check = true;
-  console.log('local first_var:', first_var)
-  console.log(jQuery.type(first_var))
   $(this).parents(".dropdown").find('.btn').html($(this).text() + ' <span class="caret"></span>');
-  // $(this).parents(".dropdown").find('.btn').val($(this).data('value')); // "allows you to have different display text and data value for each element - from SO"
-  // console.log($('#second-dropdown li a').data('value'))
 
   firstarr = featuresObj[`${colName_to_displayVal[first_var]}`];
 
-  var intervals = equalIntervals(firstarr)
-  console.log(intervals)
   // show fill layer for first variable
   beforeMap.setLayoutProperty('scores_layer', 'visibility','none');
   beforeMap.setLayoutProperty('first_selected_layer', 'visibility','visible');
-  beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
-    'step',
-    ['get', colName_to_displayVal[first_var]],
-    sequential_colors[0],
-    intervals[0], sequential_colors[1],
-    intervals[1], sequential_colors[2],
-    intervals[2], sequential_colors[3],
-    intervals[3], sequential_colors[4],
-  ])
+
+  if ($('#checkbox').prop('checked')) {
+    combinedarr = firstarr.concat(secondarr);
+    var intervals = equalIntervals(combinedarr);
+    console.log(intervals);
+    beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
+      'step',
+      ['get', colName_to_displayVal[first_var]],
+      sequential_colors[0],
+      intervals[0], sequential_colors[1],
+      intervals[1], sequential_colors[2],
+      intervals[2], sequential_colors[3],
+      intervals[3], sequential_colors[4],
+    ]);
+    if (secondarr.length > 0) {
+      afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
+        'step',
+        ['get', colName_to_displayVal[second_var]],
+        sequential_colors[0],
+        intervals[0], sequential_colors[1],
+        intervals[1], sequential_colors[2],
+        intervals[2], sequential_colors[3],
+        intervals[3], sequential_colors[4],
+      ]);
+    };
+  } else {
+    var intervals = equalIntervals(firstarr);
+    console.log(intervals);
+    beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
+      'step',
+      ['get', colName_to_displayVal[first_var]],
+      sequential_colors[0],
+      intervals[0], sequential_colors[1],
+      intervals[1], sequential_colors[2],
+      intervals[2], sequential_colors[3],
+      intervals[3], sequential_colors[4],
+    ]);
+  };
 });
 
 
@@ -162,27 +185,97 @@ $("#second-dropdown li a").click(function() {
   // $(this).parents(".dropdown").find('.btn').val($(this).data('value')); // "allows you to have different display text and data value for each element - from SO"
 
   secondarr = featuresObj[`${colName_to_displayVal[second_var]}`]
-  var intervals = equalIntervals(secondarr)
-  console.log(intervals)
 
   afterMap.setLayoutProperty('scores_layer', 'visibility','none');
   afterMap.setLayoutProperty('second_selected_layer', 'visibility','visible');
-  afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
-    'step',
-    ['get', colName_to_displayVal[second_var]],
-    sequential_colors[0],
-    intervals[0], sequential_colors[1],
-    intervals[1], sequential_colors[2],
-    intervals[2], sequential_colors[3],
-    intervals[3], sequential_colors[4],
-  ]);
+
+  if ($('#checkbox').prop('checked')) {
+    combinedarr = secondarr.concat(firstarr);
+    var intervals = equalIntervals(combinedarr);
+    console.log(intervals);
+    afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
+      'step',
+      ['get', colName_to_displayVal[second_var]],
+      sequential_colors[0],
+      intervals[0], sequential_colors[1],
+      intervals[1], sequential_colors[2],
+      intervals[2], sequential_colors[3],
+      intervals[3], sequential_colors[4],
+    ]);
+    if (firstarr.length > 0) {
+      beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
+        'step',
+        ['get', colName_to_displayVal[first_var]],
+        sequential_colors[0],
+        intervals[0], sequential_colors[1],
+        intervals[1], sequential_colors[2],
+        intervals[2], sequential_colors[3],
+        intervals[3], sequential_colors[4],
+      ]);
+    };
+  } else {
+    var intervals = equalIntervals(secondarr);
+    console.log(intervals);
+    afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
+      'step',
+      ['get', colName_to_displayVal[second_var]],
+      sequential_colors[0],
+      intervals[0], sequential_colors[1],
+      intervals[1], sequential_colors[2],
+      intervals[2], sequential_colors[3],
+      intervals[3], sequential_colors[4],
+    ]);
+  };
 });
 
-// move this code to each of variable selections, and edit this one too
+// listen for a change to the checkbox
 checkbox.addEventListener('change', e => {
     if (e.target.checked) {
       combinedarr = firstarr.concat(secondarr);
-      console.log(combinedarr)
+      var intervals = equalIntervals(combinedarr);
+      console.log(intervals)
+      beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
+        'step',
+        ['get', colName_to_displayVal[first_var]],
+        sequential_colors[0],
+        intervals[0], sequential_colors[1],
+        intervals[1], sequential_colors[2],
+        intervals[2], sequential_colors[3],
+        intervals[3], sequential_colors[4],
+      ]);
+      afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
+        'step',
+        ['get', colName_to_displayVal[second_var]],
+        sequential_colors[0],
+        intervals[0], sequential_colors[1],
+        intervals[1], sequential_colors[2],
+        intervals[2], sequential_colors[3],
+        intervals[3], sequential_colors[4],
+      ]);
+    };
+    if (!e.target.checked) {
+      intervals_1 = equalIntervals(firstarr);
+      intervals_2 = equalIntervals(secondarr);
+      console.log(intervals_1)
+      console.log(intervals_2)
+      beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
+        'step',
+        ['get', colName_to_displayVal[first_var]],
+        sequential_colors[0],
+        intervals_1[0], sequential_colors[1],
+        intervals_1[1], sequential_colors[2],
+        intervals_1[2], sequential_colors[3],
+        intervals_1[3], sequential_colors[4],
+      ]);
+      afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
+        'step',
+        ['get', colName_to_displayVal[second_var]],
+        sequential_colors[0],
+        intervals_2[0], sequential_colors[1],
+        intervals_2[1], sequential_colors[2],
+        intervals_2[2], sequential_colors[3],
+        intervals_2[3], sequential_colors[4],
+      ]);
     }
 });
 
