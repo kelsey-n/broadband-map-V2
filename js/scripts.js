@@ -20,6 +20,15 @@ afterMap.addControl(new mapboxgl.NavigationControl({
   showCompass: false
 }));
 
+// enable tooltips 
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})
+
+// variables to hold and edit our color schemes
+var sequential_colors = ['#8A8AFF','#5C5CFF','#2E2EFF','#0000FF','#0000A3']; //blue
+var diverging_colors = ['#d7191c','#fdae61','#ffffbf','#a6d96a','#1a9641'] //red --> green
+
 // 'column name in data': 'display value for frontend of visualization'
 var colName_to_displayVal = {
   'Wired 25 (BN)': 'wired25_3_2020_bn',
@@ -93,33 +102,41 @@ function closeNav() {
   $('.sidenav-button').removeClass('sidenav-button-active');
 }
 
-//Function to calculate percentiles
-function percentileCalc(arr) {
-  arr.sort();
-  var len =  arr.length;
-  var per20 =  Math.floor(len*0.2) - 1;
-  var per40 = Math.floor(len*0.4) - 1;
-  var per60 =  Math.floor(len*0.6) - 1;
-  var per80 =  Math.floor(len*0.8) - 1;
-  return [arr[per20], arr[per40], arr[per60], arr[per80]]
+//Function to calculate equal intervals of data
+function equalIntervals(arr) {
+  var minimum = d3.min(arr)
+  var range = (d3.max(arr) - minimum) / 5
+  var int1 =  minimum + range
+  var int2 = minimum + (2*range)
+  var int3 =  minimum + (3*range)
+  var int4 =  minimum + (4*range)
+  return [int1, int2, int3, int4]
 }
+
+// Function to draw histogram of selected variables
 
 // variables to hold the user's selection of variables to display:
 var first_var = 'Broadband Score';
 var second_var = 'Broadband Score';
 var features = []; // IS THIS BEING USED??????!!!!!!!!!
+var firstarr = [];
+var secondarr = [];
+checkbox = document.getElementById('checkbox');
 
 // this function will update the variable selections on the first dropdown menu for variable selection:
 $("#first-dropdown li a").click(function() {
-  first_var = $(this).text()
+  first_var = $(this).text();
+  first_check = true;
   console.log('local first_var:', first_var)
   console.log(jQuery.type(first_var))
   $(this).parents(".dropdown").find('.btn').html($(this).text() + ' <span class="caret"></span>');
   // $(this).parents(".dropdown").find('.btn').val($(this).data('value')); // "allows you to have different display text and data value for each element - from SO"
+  // console.log($('#second-dropdown li a').data('value'))
 
-  var firstarr = featuresObj[`${colName_to_displayVal[first_var]}`]
-  var percentiles = percentileCalc(firstarr)
-  console.log(percentiles)
+  firstarr = featuresObj[`${colName_to_displayVal[first_var]}`];
+
+  var intervals = equalIntervals(firstarr)
+  console.log(intervals)
   // show fill layer for first variable
   beforeMap.setLayoutProperty('scores_layer', 'visibility','none');
   beforeMap.setLayoutProperty('first_selected_layer', 'visibility','visible');
@@ -127,10 +144,10 @@ $("#first-dropdown li a").click(function() {
     'step',
     ['get', colName_to_displayVal[first_var]],
     sequential_colors[0],
-    percentiles[0], sequential_colors[1],
-    percentiles[1], sequential_colors[2],
-    percentiles[2], sequential_colors[3],
-    percentiles[3], sequential_colors[4],
+    intervals[0], sequential_colors[1],
+    intervals[1], sequential_colors[2],
+    intervals[2], sequential_colors[3],
+    intervals[3], sequential_colors[4],
   ])
 });
 
@@ -144,9 +161,9 @@ $("#second-dropdown li a").click(function() {
   $(this).parents(".dropdown").find('.btn').html($(this).text() + ' <span class="caret"></span>');
   // $(this).parents(".dropdown").find('.btn').val($(this).data('value')); // "allows you to have different display text and data value for each element - from SO"
 
-  var secondarr = featuresObj[`${colName_to_displayVal[second_var]}`]
-  var percentiles = percentileCalc(secondarr)
-  console.log(percentiles)
+  secondarr = featuresObj[`${colName_to_displayVal[second_var]}`]
+  var intervals = equalIntervals(secondarr)
+  console.log(intervals)
 
   afterMap.setLayoutProperty('scores_layer', 'visibility','none');
   afterMap.setLayoutProperty('second_selected_layer', 'visibility','visible');
@@ -154,16 +171,20 @@ $("#second-dropdown li a").click(function() {
     'step',
     ['get', colName_to_displayVal[second_var]],
     sequential_colors[0],
-    percentiles[0], sequential_colors[1],
-    percentiles[1], sequential_colors[2],
-    percentiles[2], sequential_colors[3],
-    percentiles[3], sequential_colors[4],
+    intervals[0], sequential_colors[1],
+    intervals[1], sequential_colors[2],
+    intervals[2], sequential_colors[3],
+    intervals[3], sequential_colors[4],
   ]);
 });
 
-// variables to hold and edit our color schemes
-var sequential_colors = ['#8A8AFF','#5C5CFF','#2E2EFF','#0000FF','#0000A3']; //blue
-var diverging_colors = ['#d7191c','#fdae61','#ffffbf','#a6d96a','#1a9641'] //red --> green
+// move this code to each of variable selections, and edit this one too
+checkbox.addEventListener('change', e => {
+    if (e.target.checked) {
+      combinedarr = firstarr.concat(secondarr);
+      console.log(combinedarr)
+    }
+});
 
 // Function to add styling for hovered census tract
 beforeMap.on('style.load', function() {
