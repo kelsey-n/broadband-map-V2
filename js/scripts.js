@@ -103,14 +103,34 @@ function closeNav() {
 }
 
 //Function to calculate equal intervals of data
-function equalIntervals(arr) {
-  var minimum = d3.min(arr)
-  var range = (d3.max(arr) - minimum) / 5
-  var int1 =  minimum + range
-  var int2 = minimum + (2*range)
-  var int3 =  minimum + (3*range)
-  var int4 =  minimum + (4*range)
-  return [int1, int2, int3, int4]
+// function percentiles(arr) {
+//   var minimum = d3.min(arr)
+//   var range = (d3.max(arr) - minimum) / 5
+//   var int1 =  minimum + range
+//   var int2 = minimum + (2*range)
+//   var int3 =  minimum + (3*range)
+//   var int4 =  minimum + (4*range)
+//   return [int1, int2, int3, int4]
+// }
+
+// Function to calculate percentiles of data
+function percentiles(arr) {
+  arr.sort();
+  var len = arr.length;
+  var per20 =  Math.floor(len*0.2) - 1;
+  var per40 =  Math.floor(len*0.4) - 1;
+  var per60 =  Math.floor(len*0.6) - 1;
+  var per80 =  Math.floor(len*0.8) - 1;
+  var percs = [arr[per20], arr[per40], arr[per60], arr[per80]];
+  let unique = [...new Set(percs)];
+  if (unique.length != 4) {
+    percs.forEach(function (perc, i) {
+      if (perc == percs[i+1]) {
+        percs[i+1] += 0.001
+      };
+    });
+  };
+  return percs
 }
 
 // Function to draw histogram of selected variables
@@ -118,7 +138,6 @@ function equalIntervals(arr) {
 // variables to hold the user's selection of variables to display:
 var first_var = 'Broadband Score';
 var second_var = 'Broadband Score';
-//var features = []; // IS THIS BEING USED??????!!!!!!!!!
 var firstarr = [];
 var secondarr = [];
 checkbox = document.getElementById('checkbox');
@@ -137,7 +156,7 @@ $("#first-dropdown li a").click(function() {
 
   if ($('#checkbox').prop('checked')) {
     combinedarr = firstarr.concat(secondarr);
-    var intervals = equalIntervals(combinedarr);
+    var intervals = percentiles(combinedarr);
     console.log(intervals);
     beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
       'step',
@@ -160,7 +179,7 @@ $("#first-dropdown li a").click(function() {
       ]);
     };
   } else {
-    var intervals = equalIntervals(firstarr);
+    var intervals = percentiles(firstarr);
     console.log(intervals);
     beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
       'step',
@@ -191,7 +210,7 @@ $("#second-dropdown li a").click(function() {
 
   if ($('#checkbox').prop('checked')) {
     combinedarr = secondarr.concat(firstarr);
-    var intervals = equalIntervals(combinedarr);
+    var intervals = percentiles(combinedarr);
     console.log(intervals);
     afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
       'step',
@@ -214,7 +233,7 @@ $("#second-dropdown li a").click(function() {
       ]);
     };
   } else {
-    var intervals = equalIntervals(secondarr);
+    var intervals = percentiles(secondarr);
     console.log(intervals);
     afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
       'step',
@@ -232,7 +251,7 @@ $("#second-dropdown li a").click(function() {
 checkbox.addEventListener('change', e => {
     if (e.target.checked) {
       combinedarr = firstarr.concat(secondarr);
-      var intervals = equalIntervals(combinedarr);
+      var intervals = percentiles(combinedarr);
       console.log(intervals)
       beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
         'step',
@@ -254,8 +273,8 @@ checkbox.addEventListener('change', e => {
       ]);
     };
     if (!e.target.checked) {
-      intervals_1 = equalIntervals(firstarr);
-      intervals_2 = equalIntervals(secondarr);
+      intervals_1 = percentiles(firstarr);
+      intervals_2 = percentiles(secondarr);
       console.log(intervals_1)
       console.log(intervals_2)
       beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
