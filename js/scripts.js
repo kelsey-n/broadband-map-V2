@@ -115,7 +115,7 @@ function closeNav() {
 
 // Function to calculate percentiles of data
 function percentiles(arr) {
-  arr.sort();
+  arr.sort(d3.ascending);
   var len = arr.length;
   var per20 =  Math.floor(len*0.2) - 1;
   var per40 =  Math.floor(len*0.4) - 1;
