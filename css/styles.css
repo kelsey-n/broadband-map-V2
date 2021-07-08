@@ -142,3 +142,8 @@ body * {
 .dropdown-menu, .btn {
   font-size: 12px;
 }
+
+.chart {
+  height: 300px;
+  width: 300px;
+}

@@ -26,7 +26,7 @@ $(function () {
 })
 
 // variables to hold and edit our color schemes
-var sequential_colors = ['#8A8AFF','#5C5CFF','#2E2EFF','#0000FF','#0000A3']; //blue
+var sequential_colors = ['#8A8AFF','#5C5CFF','#2E2EFF','#0000FF','#0000A3']; //blue TRY VARYING SATURATION
 var diverging_colors = ['#d7191c','#fdae61','#ffffbf','#a6d96a','#1a9641'] //red --> green
 
 // 'column name in data': 'display value for frontend of visualization'
@@ -102,17 +102,6 @@ function closeNav() {
   $('.sidenav-button').removeClass('sidenav-button-active');
 }
 
-//Function to calculate equal intervals of data
-// function percentiles(arr) {
-//   var minimum = d3.min(arr)
-//   var range = (d3.max(arr) - minimum) / 5
-//   var int1 =  minimum + range
-//   var int2 = minimum + (2*range)
-//   var int3 =  minimum + (3*range)
-//   var int4 =  minimum + (4*range)
-//   return [int1, int2, int3, int4]
-// }
-
 // Function to calculate percentiles of data
 function percentiles(arr) {
   arr.sort(d3.ascending);
@@ -134,6 +123,62 @@ function percentiles(arr) {
 }
 
 // Function to draw histogram of selected variables
+function createPlot(arr, percentiles) {
+  // TO DO: check how mapbox stops works for edge vals!!!! 
+  [0,1,2,3].forEach((i) => {
+    if (i == 0) {
+      window[`x${i}`] = arr.filter(value => value < percentiles[i]);
+    } else if (i == 3) {
+      window[`x${i}`] = arr.filter(value => value >= percentiles[i-1]);
+    } else {
+      window[`x${i}`] = arr.filter(value => value >= percentiles[i-1] && value < percentiles[i])
+    }
+
+    window[`trace${i}`] = {
+      x: window[`x${i}`],
+      type: 'histogram',
+      marker: {
+        color: sequential_colors[i]
+      }
+    }
+  })
+  //var x0 = arr.filter(value => value < percentiles[0]);
+  //var x1 = arr.filter(value => value >= percentiles[0] && value < percentiles[1]); // TO DO: check how mapbox stops works for edge vals
+
+  // var trace0 = {
+  //     x: x0,
+  //     type: 'histogram',
+  //     marker: {
+  //       color: sequential_colors[0]
+  //     }
+  //   };
+  // var trace1 = {
+  //     x: x1,
+  //     type: 'histogram',
+  //     marker: {
+  //       color: sequential_colors[1]
+  //     }
+  //   };
+
+  var data = [trace0, trace1, trace2, trace3];
+
+  var layout = {
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    xaxis: {
+      tickfont: {
+        color: 'white'
+      }
+    },
+    yaxis: {
+      tickfont: {
+        color: 'white'
+      }
+    }
+  };
+
+  Plotly.newPlot('chart1', data, layout);
+}
 
 // variables to hold the user's selection of variables to display:
 var first_var = 'Broadband Score';
@@ -149,6 +194,9 @@ $("#first-dropdown li a").click(function() {
   $(this).parents(".dropdown").find('.btn').html($(this).text() + ' <span class="caret"></span>');
 
   firstarr = featuresObj[`${colName_to_displayVal[first_var]}`];
+  var testpercentiles = percentiles(firstarr) // TO DELETE
+  // create histogram for first variable
+  createPlot(firstarr, testpercentiles)
 
   // show fill layer for first variable
   beforeMap.setLayoutProperty('scores_layer', 'visibility','none');
