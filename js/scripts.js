@@ -39,13 +39,13 @@ var colName_to_displayVal = {
   'Broadband Usage (MS)': 'broadbandusage_ms',
   'Average Throughput (ML)': 'avg_meanthroughputmbps_ml',
   'Number of Speed Tests (ML)': 'speedtests_ml',
-  'Average Weighted Download Speed (Ook)': 'avgwt_downloadspeed_ook',
-  'Average Weighted Upload Speed (Ook)': 'avgwt_uploadspeed_ook',
+  'Download Speed (Ook)': 'avgwt_downloadspeed_ook',
+  'Upload Speed (Ook)': 'avgwt_uploadspeed_ook',
   'Number of Speed Tests (Ook)': 'speedtests_ook',
   'Number of Internet Providers (FCC)': 'numproviders_fcc',
   'Average Fraction Coverage (FCC)': 'avg_fractioncoverage_fcc',
-  'Average Weighted Maximum Advertised Download Speed (FCC)': 'avgwt_maxaddown_fcc',
-  'Average Weighted Maximum Advertised Upload Speed (FCC)': 'avgwt_maxadup_fcc',
+  'Download Speed (FCC)': 'avgwt_maxaddown_fcc',
+  'Upload Speed (FCC)': 'avgwt_maxadup_fcc',
   'Broadband Score': 'dummy_score_for_testing'
 }
 
@@ -123,62 +123,63 @@ function percentiles(arr) {
 }
 
 // Function to draw histogram of selected variables
-function createPlot(arr, percentiles) {
-  // TO DO: check how mapbox stops works for edge vals!!!! 
-  [0,1,2,3].forEach((i) => {
+function createPlot(arr, percentiles, chartid) {
+  // TO DO: check how mapbox stops works for edge vals!!!!
+  [0,1,2,3,4].forEach((i) => {
     if (i == 0) {
       window[`x${i}`] = arr.filter(value => value < percentiles[i]);
-    } else if (i == 3) {
+      var name = `0 - ${percentiles[i]}`;
+    } else if (i == 4) {
       window[`x${i}`] = arr.filter(value => value >= percentiles[i-1]);
+      var name = `${percentiles[i-1]}+`;
     } else {
-      window[`x${i}`] = arr.filter(value => value >= percentiles[i-1] && value < percentiles[i])
+      window[`x${i}`] = arr.filter(value => value >= percentiles[i-1] && value < percentiles[i]);
+      var name = `${percentiles[i-1]} - ${percentiles[i]}`
     }
 
-    window[`trace${i}`] = {
+    window[`trace${i}`] = { // change this var name to be the range
       x: window[`x${i}`],
       type: 'histogram',
       marker: {
         color: sequential_colors[i]
-      }
+      },
+      name: name
     }
   })
-  //var x0 = arr.filter(value => value < percentiles[0]);
-  //var x1 = arr.filter(value => value >= percentiles[0] && value < percentiles[1]); // TO DO: check how mapbox stops works for edge vals
 
-  // var trace0 = {
-  //     x: x0,
-  //     type: 'histogram',
-  //     marker: {
-  //       color: sequential_colors[0]
-  //     }
-  //   };
-  // var trace1 = {
-  //     x: x1,
-  //     type: 'histogram',
-  //     marker: {
-  //       color: sequential_colors[1]
-  //     }
-  //   };
-
-  var data = [trace0, trace1, trace2, trace3];
+  var data = [trace0, trace1, trace2, trace3, trace4];
 
   var layout = {
+    margin: {
+      t: 30, //top margin
+      l: 30, //left margin
+      r: 0, //right margin
+      b: 20 //bottom margin
+    },
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(0,0,0,0)',
-    xaxis: {
-      tickfont: {
-        color: 'white'
-      }
-    },
-    yaxis: {
-      tickfont: {
-        color: 'white'
-      }
+    barmode: 'stack',
+    legend: {
+      font: {
+        size: 10
+      },
+      itemclick: 'toggleothers',
+      xanchor: 'center',
+      yanchor: 'top',
+      x: 0.2,
+      y: -0.2,
+      orientation: 'v',
+      traceorder: 'normal',
+      tracegroupgap: 0
     }
   };
 
-  Plotly.newPlot('chart1', data, layout);
-}
+  var config = {
+    'displayModeBar': false // this is the line that hides the bar.
+  };
+
+  Plotly.newPlot(chartid, data, layout, config);
+};
 
 // variables to hold the user's selection of variables to display:
 var first_var = 'Broadband Score';
@@ -194,9 +195,9 @@ $("#first-dropdown li a").click(function() {
   $(this).parents(".dropdown").find('.btn').html($(this).text() + ' <span class="caret"></span>');
 
   firstarr = featuresObj[`${colName_to_displayVal[first_var]}`];
-  var testpercentiles = percentiles(firstarr) // TO DELETE
-  // create histogram for first variable
-  createPlot(firstarr, testpercentiles)
+  // var testpercentiles = percentiles(firstarr) // TO DELETE
+  // // create histogram for first variable
+  // createPlot(firstarr, testpercentiles)
 
   // show fill layer for first variable
   beforeMap.setLayoutProperty('scores_layer', 'visibility','none');
@@ -205,6 +206,7 @@ $("#first-dropdown li a").click(function() {
   if ($('#checkbox').prop('checked')) {
     combinedarr = firstarr.concat(secondarr);
     var intervals = percentiles(combinedarr);
+    createPlot(firstarr, intervals, 'chart1');
     console.log(intervals);
     beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
       'step',
@@ -216,6 +218,7 @@ $("#first-dropdown li a").click(function() {
       intervals[3], sequential_colors[4],
     ]);
     if (secondarr.length > 0) {
+      createPlot(secondarr, intervals, 'chart2');
       afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
         'step',
         ['get', colName_to_displayVal[second_var]],
@@ -228,6 +231,7 @@ $("#first-dropdown li a").click(function() {
     };
   } else {
     var intervals = percentiles(firstarr);
+    createPlot(firstarr, intervals, 'chart1');
     console.log(intervals);
     beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
       'step',
@@ -259,6 +263,7 @@ $("#second-dropdown li a").click(function() {
   if ($('#checkbox').prop('checked')) {
     combinedarr = secondarr.concat(firstarr);
     var intervals = percentiles(combinedarr);
+    createPlot(secondarr, intervals, 'chart2');
     console.log(intervals);
     afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
       'step',
@@ -270,6 +275,7 @@ $("#second-dropdown li a").click(function() {
       intervals[3], sequential_colors[4],
     ]);
     if (firstarr.length > 0) {
+      createPlot(firstarr, intervals, 'chart1');
       beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
         'step',
         ['get', colName_to_displayVal[first_var]],
@@ -282,6 +288,7 @@ $("#second-dropdown li a").click(function() {
     };
   } else {
     var intervals = percentiles(secondarr);
+    createPlot(secondarr, intervals, 'chart2');
     console.log(intervals);
     afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
       'step',
@@ -300,6 +307,8 @@ checkbox.addEventListener('change', e => {
     if (e.target.checked) {
       combinedarr = firstarr.concat(secondarr);
       var intervals = percentiles(combinedarr);
+      createPlot(firstarr, intervals, 'chart1');
+      createPlot(secondarr, intervals, 'chart2');
       console.log(intervals)
       beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
         'step',
@@ -323,6 +332,8 @@ checkbox.addEventListener('change', e => {
     if (!e.target.checked) {
       intervals_1 = percentiles(firstarr);
       intervals_2 = percentiles(secondarr);
+      createPlot(firstarr, intervals_1, 'chart1');
+      createPlot(secondarr, intervals_2, 'chart2');
       console.log(intervals_1)
       console.log(intervals_2)
       beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
@@ -349,7 +360,7 @@ checkbox.addEventListener('change', e => {
 // Function to add styling for hovered census tract
 beforeMap.on('style.load', function() {
 
-  openNav(); //load welcome message on load
+  // openNav(); //load welcome message on load
 
 //   // add an empty data source, which we will use to highlight the census tract that the user is hovering over
 //   beforeMap.addSource('highlight-tract-source', {

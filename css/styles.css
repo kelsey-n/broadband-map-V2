@@ -29,7 +29,7 @@ body * {
 
 #sidenav-buttons {
   position: fixed;
-  left: 250px;
+  left: 0px; /* change to 250px if opening nav on load */
   z-index: 1;
   transition: left .5s;
 }
@@ -112,18 +112,27 @@ body * {
   text-decoration: none;
 }
 
-#map-controls {
-  top: 10%;
-  right: 20px;
+#map-controls-right {
+  top: 0;
+  right: 0;
   width: 300px;
   position: fixed;
   z-index: 1; /* places controls on top of map container */
   transition: right .5s;
 }
 
-#map-controls::before {
+#map-controls-left {
+  top: 0;
+  left: 0;
+  width: 300px;
+  position: fixed;
+  z-index: 1; /* places controls on top of map container */
+  transition: right .5s;
+}
+
+.map-controls::before {
   content: "";
-  background-color: gray;
+  background-color: white;
   opacity: 0.8;
   position: absolute;
   top: 0px;
@@ -136,14 +145,18 @@ body * {
 .map-controls-content {
   position: relative; /* places content inside the map controls on top of partly transparent background */
   padding: 15px;
-  color: white;
+  color: black;
 }
 
 .dropdown-menu, .btn {
   font-size: 12px;
 }
 
+.btn {
+  font-weight: bold;
+}
+
 .chart {
-  height: 300px;
-  width: 300px;
+  height: 350px;
+  width: auto;
 }
