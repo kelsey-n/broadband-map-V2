@@ -358,47 +358,59 @@ checkbox.addEventListener('change', e => {
 });
 
 // Function to add styling for hovered census tract
-beforeMap.on('style.load', function() {
+beforeMap.on('load', function() {
 
   // openNav(); //load welcome message on load
 
-//   // add an empty data source, which we will use to highlight the census tract that the user is hovering over
-//   beforeMap.addSource('highlight-tract-source', {
-//     type: 'geojson',
-//     data: {
-//       type: 'FeatureCollection',
-//       features: []
-//     }
-//   });
-//
-//   // add a layer for the hovered station
-//   map.addLayer({
-//     id: 'highlight-tract-layer',
-//     type: 'fill-extrusion',
-//     source: 'highlight-tract-source',
-//     paint: {
-//       'fill-extrusion-color': [
-//         'step',
-//         ['get', 'avgwt_downloadspeed_ook'],
-//         sequential_colors[0],
-//         25, sequential_colors[1],
-//         100, sequential_colors[2],
-//         200, sequential_colors[3],
-//         230, sequential_colors[4],
-//       ],
-//       'fill-extrusion-height': [
-//         'step',
-//         ['get', 'avgwt_uploadspeed_ook'],
-//         5000,
-//         25, 10000,
-//         60, 20000,
-//         120, 30000,
-//         180, 40000
-//       ],
-//       'fill-extrusion-opacity': 1
-//     }
-//   });
-//
+  // add an empty data source, which we will use to highlight the census tract that the user is hovering over
+  beforeMap.addSource('highlight-tract-source-beforeMap', {
+    type: 'geojson',
+    data: {
+      type: 'FeatureCollection',
+      features: []
+    }
+  });
+
+  // add a layer for the hovered census tract
+  beforeMap.addLayer({
+    id: 'highlight-tract-layer-beforeMap',
+    type: 'line',
+    source: 'highlight-tract-source-beforeMap',
+    paint: {
+      'line-width': 5,
+      'line-color': 'black',
+      // 'fill-opacity': 1,
+      // 'fill-outline-color': 'black'
+    }
+  });
+  beforeMap.moveLayer('highlight-tract-layer-beforeMap', 'scores_layer')
+})
+
+// Function to add styling for hovered census tract
+afterMap.on('style.load', function() {
+
+  // openNav(); //load welcome message on load
+
+  // add an empty data source, which we will use to highlight the census tract that the user is hovering over
+  afterMap.addSource('highlight-tract-source-afterMap', {
+    type: 'geojson',
+    data: {
+      type: 'FeatureCollection',
+      features: []
+    }
+  });
+
+  // add a layer for the hovered census tract
+  afterMap.addLayer({
+    id: 'highlight-tract-layer-afterMap',
+    type: 'line',
+    source: 'highlight-tract-source-afterMap',
+    paint: {
+      'line-width': 2,
+      'line-color': 'black',
+    }
+  });
+
 })
 
 const REQUEST_GET_MAX_URL_LENGTH = 2048;
@@ -431,8 +443,7 @@ async function addCartoLayer() {
           4, diverging_colors[3],
           5, diverging_colors[4],
         ],
-        'fill-opacity': 0.7,
-        'fill-outline-color': 'black'
+        'fill-opacity': 1
       }
     }
   );
@@ -459,8 +470,8 @@ async function addCartoLayer() {
           4, diverging_colors[3],
           5, diverging_colors[4],
         ],
-        'fill-opacity': 0.7,
-        'fill-outline-color': 'black'
+        'fill-opacity': 1
+        // 'fill-outline-color': 'black'
       }
     }
   );
@@ -487,8 +498,8 @@ async function addCartoLayer() {
           200, sequential_colors[3],
           230, sequential_colors[4],
         ],
-        'fill-opacity': 1,
-        'fill-outline-color': 'black'
+        'fill-opacity': 1
+        // 'fill-outline-color': 'black'
       }
     }
   );
@@ -515,8 +526,8 @@ async function addCartoLayer() {
           200, sequential_colors[3],
           230, sequential_colors[4],
         ],
-        'fill-opacity': 1,
-        'fill-outline-color': 'black'
+        'fill-opacity': 1
+        // 'fill-outline-color': 'black'
       }
     }
   );
@@ -573,53 +584,116 @@ var popup = new mapboxgl.Popup({
   closeOnClick: false
 });
 
+// Function to query rendered features for the census tract the user is hovering over, highlight that tract, then populate popup with that tract's info
+beforeMap.on('mousemove', function(e) {
+  //query for the features under the mouse:
+  var features = beforeMap.queryRenderedFeatures(e.point, {
+      layers: ['scores_layer', 'first_selected_layer']
+    });
+
+  // Check whether features exist
+  if (features.length > 0) {
+    beforeMap.getCanvas().style.cursor = 'pointer'; //change cursor to pointer if hovering over a census tract
+
+    var hoveredFeature = features[0];
+    //Extract necessary variables:
+    var tract_id = hoveredFeature.properties.censustract;
+    // var county_name = INCLUDE COUNTY NAME HERE
+    var first_var_value = hoveredFeature.properties[`${colName_to_displayVal[first_var]}`];
+    var second_var_value = hoveredFeature.properties[`${colName_to_displayVal[second_var]}`];
+
+    if (first_var === second_var) {
+      window['popupContent'] = `
+        <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">Census Tract ${tract_id}</div>
+        <div style = "font-family:sans-serif; font-size:11px; font-weight:600">${first_var}: ${first_var_value}</div>
+      `;
+    } else {
+      window['popupContent'] = `
+        <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">Census Tract ${tract_id}</div>
+        <div style = "font-family:sans-serif; font-size:11px; font-weight:600">${first_var}: ${first_var_value}</div>
+        <div style = "font-family:sans-serif; font-size:11px; font-weight:600">${second_var}: ${second_var_value}</div>
+      `;
+    };
+
+    //fix the position of the popup as the position of the circle:
+    popup.setLngLat(e.lngLat).setHTML(popupContent).addTo(beforeMap);
+    //create and populate a feature with the properties of the hoveredFeature necessary for data-driven styling of the highlight layer
+    // var hoveredFeature_data = {
+    //   'type': 'Feature',
+    //   'geometry': hoveredFeature.geometry,
+    //   'properties': {
+    //     'avgwt_uploadspeed_ook': upload_sp,
+    //     'avgwt_downloadspeed_ook': download_sp
+    //   },
+    // };
+    // set this circle's geometry and properties as the data for the highlight source
+    beforeMap.getSource('highlight-tract-source-beforeMap').setData(hoveredFeature.geometry);
+
+    } else { //if len(features) <1
+      // remove the Popup, change back to default cursor and clear data from the highlight data source
+      popup.remove();
+      beforeMap.getCanvas().style.cursor = '';
+      beforeMap.getSource('highlight-tract-source-beforeMap').setData({
+        'type': 'FeatureCollection',
+        'features': []
+      })
+    }
+});
 
 // Function to query rendered features for the census tract the user is hovering over, highlight that tract, then populate popup with that tract's info
-// map.on('mousemove', function(e) {
-//   //query for the features under the mouse:
-//   var features = map.queryRenderedFeatures(e.point, {
-//       layers: ['second_selected_layer'],
-//   });
-//
-//   // Check whether features exist
-//   if (features.length > 0) {
-//     map.getCanvas().style.cursor = 'pointer'; //change cursor to pointer if hovering over a circle/feature
-//
-//     var hoveredFeature = features[0];
-//     //Extract necessary variables:
-//     var tract_id = hoveredFeature.properties.censustract;
-//     var tests = hoveredFeature.properties.tests;
-//     var upload_sp = hoveredFeature.properties.avgwt_uploadspeed_ook;
-//     var download_sp = hoveredFeature.properties.avgwt_downloadspeed_ook
-//
-//     window['popupContent'] = `
-//       <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">Census Tract ${tract_id}</div>
-//       <div style = "font-family:sans-serif; font-size:11px; font-weight:600">Download Speed: ${download_sp}</div>
-//       <div style = "font-family:sans-serif; font-size:11px; font-weight:600">Upload Speed: ${upload_sp}</div>
-//       <div style = "font-family:sans-serif; font-size:10px; font-weight:400">(based on ${tests} tests)</div>
-//     `;
-//
-//     //fix the position of the popup as the position of the circle:
-//     popup.setLngLat(e.lngLat).setHTML(popupContent).addTo(map);
-//     //create and populate a feature with the properties of the hoveredFeature necessary for data-driven styling of the highlight layer
-//     var hoveredFeature_data = {
-//       'type': 'Feature',
-//       'geometry': hoveredFeature.geometry,
-//       'properties': {
-//         'avgwt_uploadspeed_ook': upload_sp,
-//         'avgwt_downloadspeed_ook': download_sp
-//       },
-//     };
-//     // set this circle's geometry and properties as the data for the highlight source
-//     map.getSource('highlight-tract-source').setData(hoveredFeature_data);
-//
-//     } else { //if len(features) <1
-//       // remove the Popup, change back to default cursor and clear data from the highlight data source
-//       popup.remove();
-//       map.getCanvas().style.cursor = '';
-//       map.getSource('highlight-tract-source').setData({
-//         'type': 'FeatureCollection',
-//         'features': []
-//       })
-//     }
-// });
+afterMap.on('mousemove', function(e) {
+  //query for the features under the mouse:
+  var features = afterMap.queryRenderedFeatures(e.point, {
+      layers: ['scores_layer', 'second_selected_layer']
+    });
+
+  // Check whether features exist
+  if (features.length > 0) {
+    afterMap.getCanvas().style.cursor = 'pointer'; //change cursor to pointer if hovering over a census tract
+
+    var hoveredFeature = features[0];
+    //Extract necessary variables:
+    var tract_id = hoveredFeature.properties.censustract;
+    // var county_name = INCLUDE COUNTY NAME HERE
+    var first_var_value = hoveredFeature.properties[`${colName_to_displayVal[first_var]}`];
+    var second_var_value = hoveredFeature.properties[`${colName_to_displayVal[second_var]}`];
+
+    if (first_var === second_var) {
+      window['popupContent'] = `
+        <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">Census Tract ${tract_id}</div>
+        <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">County</div>
+        <div style = "font-family:sans-serif; font-size:11px; font-weight:600">${first_var}: ${first_var_value}</div>
+      `;
+    } else {
+      window['popupContent'] = `
+        <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">Census Tract ${tract_id}</div>
+        <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">County</div>
+        <div style = "font-family:sans-serif; font-size:11px; font-weight:600">${first_var}: ${first_var_value}</div>
+        <div style = "font-family:sans-serif; font-size:11px; font-weight:600">${second_var}: ${second_var_value}</div>
+      `;
+    };
+
+    //fix the position of the popup as the position of the circle:
+    popup.setLngLat(e.lngLat).setHTML(popupContent).addTo(afterMap);
+    //create and populate a feature with the properties of the hoveredFeature necessary for data-driven styling of the highlight layer
+    // var hoveredFeature_data = {
+    //   'type': 'Feature',
+    //   'geometry': hoveredFeature.geometry,
+    //   'properties': {
+    //     'avgwt_uploadspeed_ook': upload_sp,
+    //     'avgwt_downloadspeed_ook': download_sp
+    //   },
+    // };
+    // set this circle's geometry and properties as the data for the highlight source
+    afterMap.getSource('highlight-tract-source-afterMap').setData(hoveredFeature.geometry);
+
+    } else { //if len(features) <1
+      // remove the Popup, change back to default cursor and clear data from the highlight data source
+      popup.remove();
+      afterMap.getCanvas().style.cursor = '';
+      afterMap.getSource('highlight-tract-source-afterMap').setData({
+        'type': 'FeatureCollection',
+        'features': []
+      })
+    }
+});
