@@ -37,24 +37,24 @@ var colName_to_displayVal = {
   //'fastestaveragembps_bn': 'Fastest Average Speed (BN)',
   //'lowestpricedterrestrialbroadbandplan_bn': 'Lowest Priced Terrestrial Plan (BN)',
   'Broadband Usage (MS)': 'broadbandusage_ms',
-  'Average Throughput (ML)': 'avg_meanthroughputmbps_ml',
+  'M-Lab Throughput': 'avg_meanthroughputmbps_ml',
   'Number of Speed Tests (ML)': 'speedtests_ml',
-  'Download Speed (Ook)': 'avgwt_downloadspeed_ook',
-  'Upload Speed (Ook)': 'avgwt_uploadspeed_ook',
+  'Ookla Download Speed': 'avgwt_downloadspeed_ook',
+  'Ookla Upload Speed': 'avgwt_uploadspeed_ook',
   'Number of Speed Tests (Ook)': 'speedtests_ook',
   'Number of Internet Providers (FCC)': 'numproviders_fcc',
   'Average Fraction Coverage (FCC)': 'avg_fractioncoverage_fcc',
-  'Download Speed (FCC)': 'avgwt_maxaddown_fcc',
-  'Upload Speed (FCC)': 'avgwt_maxadup_fcc',
+  'FCC Download Speed': 'avgwt_maxaddown_fcc',
+  'FCC Upload Speed': 'avgwt_maxadup_fcc',
   'Broadband Score': 'dummy_score_for_testing'
 }
 
 // Populate the variable selection dropdowns on the frontend:
-$.each(colName_to_displayVal, function(key, value) {
-  $('.dropdown-menu').append(`
-    <li><a class="dropdown-item" data-value=${value} href="#">${key}</a></li>
-    `)
-})
+// $.each(colName_to_displayVal, function(key, value) {
+//   $('.dropdown-menu').append(`
+//     <li><a class="dropdown-item" data-value=${value} href="#">${key}</a></li>
+//     `)
+// })
 
 // Obj var to hold arrays of all property values
 var featuresObj = {};
@@ -700,4 +700,4 @@ beforeMap.on('load', function() {
         })
       }
   });
-}); 
+});
