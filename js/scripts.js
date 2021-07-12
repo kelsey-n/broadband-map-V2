@@ -25,9 +25,24 @@ $(function () {
   $('[data-toggle="tooltip"]').tooltip()
 })
 
+// enable button to close modal after user reads disclaimer
+document.getElementById('modal-checkbox').addEventListener('change', e => {
+  if (e.target.checked) {
+    $('#modal-dismiss').removeAttr('disabled');
+  } else if (!e.target.checked) {
+    $('#modal-dismiss').attr('disabled', 'disabled');
+  }
+})
+
+
+// if ($('#modal-checkbox').prop('checked')) {
+//   $('#modal-dismiss').removeClass('disabled');
+//   console.log('checked')
+// }
+
 // variables to hold and edit our color schemes
 var sequential_colors = ['#8A8AFF','#5C5CFF','#2E2EFF','#0000FF','#0000A3']; //blue TRY VARYING SATURATION
-var diverging_colors = ['#d7191c','#fdae61','#ffffbf','#a6d96a','#1a9641'] //red --> green
+var diverging_colors = ['#ca0020','#f4a582','#f7f7f7','#92c5de','#0571b0'] //['#d7191c','#fdae61','#ffffbf','#abd9e9','#2c7bb6'] //['#d7191c','#fdae61','#ffffbf','#a6d96a','#1a9641'] //red --> green TRY CHANGING TO BLUE
 
 // 'column name in data': 'display value for frontend of visualization'
 var colName_to_displayVal = {
@@ -433,6 +448,10 @@ $("#reset-button").click(function() {
     document.getElementById('left-button').innerHTML = 'Select ISP-reported speed <span class="caret"></span>'
     document.getElementById('right-button').innerHTML = 'Select measured speed <span class="caret"></span>'
 
+});
+
+beforeMap.on('style.load', function() {
+  $('#exampleModalCenter').modal('show') // show modal when style loads
 });
 
 // Function to add styling for hovered census tract

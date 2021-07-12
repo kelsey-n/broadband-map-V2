@@ -12,6 +12,30 @@
 
   <body>
 
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true"
+    data-backdrop="static" data-keyboard="false">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLongTitle">Important note</h5>
+          </div>
+          <div class="modal-body">
+            Disclaimer on data aggregation
+          </div>
+          <div class="modal-footer">
+            <div class="form-check" style='align-self: left'>
+              <input class="form-check-input" type="checkbox" value="" id="modal-checkbox">
+              <label class="form-check-label" for="flexCheckDisabled" style='font-size: 13px'>
+                I have read and understood the limitations of the data
+              </label>
+            </div>
+            <button type="button" class="btn btn-outline-secondary" id='modal-dismiss' disabled data-dismiss="modal">Explore map</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id='sidenav-menu'>
       <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
       <!-- Default text when user first loads page - brief context and instructions -->
@@ -87,14 +111,14 @@
             </div>
             <div class="chart" id='chart1'>
               <!-- to be populated when user selects first var -->
-              <p>Instructions: <br> Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+              <p>Background: <br> Lorem ipsum dolor sit amet, consectetur adipiscing elit,
                 sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
                 nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
                 reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
                 cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
             </div>
             <button class="btn btn-outline-secondary btn-sm" id='reset-button' type="button">
-              Reset
+              Reset map
             </button>
           </div>
         </div>
