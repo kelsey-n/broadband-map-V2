@@ -181,6 +181,53 @@ function createPlot(arr, percentiles, chartid) {
   Plotly.newPlot(chartid, data, layout, config);
 };
 
+// Function to draw INITIAL histogram of broadband score with diverging color scheme
+function createInitialPlot(arr, percentiles) {
+  [0,1,2,3,4].forEach((i) => {
+    if (i == 0) {
+      window[`x${i}`] = arr.filter(value => value < percentiles[i]);
+      var name = `0 - ${percentiles[i]}`;
+    } else if (i == 4) {
+      window[`x${i}`] = arr.filter(value => value >= percentiles[i-1]);
+      var name = `${percentiles[i-1]}+`;
+    } else {
+      window[`x${i}`] = arr.filter(value => value >= percentiles[i-1] && value < percentiles[i]);
+      var name = `${percentiles[i-1]} - ${percentiles[i]}`
+    }
+
+    window[`trace${i}`] = {
+      x: window[`x${i}`],
+      type: 'histogram',
+      marker: {
+        color: diverging_colors[i]
+      }
+    }
+  })
+
+  var data = [trace0, trace1, trace2, trace3, trace4];
+
+  var layout = {
+    // margin: {
+    //   t: 30, //top margin
+    //   l: 30, //left margin
+    //   r: 0, //right margin
+    //   b: 20 //bottom margin
+    // },
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    barmode: 'stack',
+    showlegend: false,
+    showticklabels: false,
+    title: 'Broadband Coverage Score'
+  };
+
+  var config = {
+    'displayModeBar': false // this is the line that hides the bar.
+  };
+
+  Plotly.newPlot('chart2', data, layout, config);
+};
+
 // variables to hold the user's selection of variables to display:
 var first_var = 'Broadband Score';
 var second_var = 'Broadband Score';
@@ -190,6 +237,7 @@ checkbox = document.getElementById('checkbox');
 
 // this function will update the variable selections on the first dropdown menu for variable selection:
 $("#first-dropdown li a").click(function() {
+  document.getElementById("chart1").textContent = "";
   first_var = $(this).text();
   first_check = true;
   $(this).parents(".dropdown").find('.btn').html($(this).text() + ' <span class="caret"></span>');
@@ -357,6 +405,36 @@ checkbox.addEventListener('change', e => {
     }
 });
 
+// Function to reset map to original state
+$("#reset-button").click(function() {
+  afterMap.setLayoutProperty('scores_layer', 'visibility','visible');
+  afterMap.setLayoutProperty('second_selected_layer', 'visibility','none');
+  beforeMap.setLayoutProperty('scores_layer', 'visibility','visible');
+  beforeMap.setLayoutProperty('first_selected_layer', 'visibility','none');
+
+  // reset instructions text on left map controls
+  document.getElementById("chart1").innerHTML = `Instructions: <br> Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+    sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+    nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
+    reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+    cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`;
+
+    // recreate broadband score plot on right map controls
+    var initial_intervals = percentiles(featuresObj['dummy_score_for_testing']);
+    createInitialPlot(featuresObj['dummy_score_for_testing'], initial_intervals);
+
+    // reset variables
+    first_var = 'Broadband Score';
+    second_var = 'Broadband Score';
+    firstarr = [];
+    secondarr = [];
+
+    // reset button text
+    document.getElementById('left-button').innerHTML = 'Select ISP-reported speed <span class="caret"></span>'
+    document.getElementById('right-button').innerHTML = 'Select measured speed <span class="caret"></span>'
+
+});
+
 // Function to add styling for hovered census tract
 beforeMap.on('load', function() {
 
@@ -387,7 +465,7 @@ beforeMap.on('load', function() {
 })
 
 // Function to add styling for hovered census tract
-afterMap.on('style.load', function() {
+afterMap.on('load', function() {
 
   // openNav(); //load welcome message on load
 
@@ -411,6 +489,9 @@ afterMap.on('style.load', function() {
     }
   });
 
+  // plot scores on right map controls:
+  var initial_intervals = percentiles(featuresObj['dummy_score_for_testing']);
+  createInitialPlot(featuresObj['dummy_score_for_testing'], initial_intervals);
 })
 
 const REQUEST_GET_MAX_URL_LENGTH = 2048;
@@ -608,11 +689,13 @@ beforeMap.on('load', function() {
       if (first_var === second_var) {
         window['popupContent'] = `
           <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">Census Tract ${tract_id}</div>
+          <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">County</div>
           <div style = "font-family:sans-serif; font-size:11px; font-weight:600">${first_var}: ${first_var_value}</div>
         `;
       } else {
         window['popupContent'] = `
           <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">Census Tract ${tract_id}</div>
+          <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">County</div>
           <div style = "font-family:sans-serif; font-size:11px; font-weight:600">${first_var}: ${first_var_value}</div>
           <div style = "font-family:sans-serif; font-size:11px; font-weight:600">${second_var}: ${second_var_value}</div>
         `;
@@ -642,6 +725,9 @@ beforeMap.on('load', function() {
         })
       }
   });
+});
+
+afterMap.on('load', function() {
 
   // Function to query rendered features for the census tract the user is hovering over, highlight that tract, then populate popup with that tract's info
   afterMap.on('mousemove', function(e) {
@@ -700,4 +786,4 @@ beforeMap.on('load', function() {
         })
       }
   });
-});
+})
