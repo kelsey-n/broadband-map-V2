@@ -1,7 +1,7 @@
 var beforeMap = new mapboxgl.Map({
     container: 'before',
     style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
-    bounds: [[-80.00125, 40.40703], [-71.64066, 45.08304]] // so initial queryRenderedFeatures will capture all tracts
+    bounds: [[-80.00125, 40.40703], [-71.64066, 45.08304]]
 });
 
 var afterMap = new mapboxgl.Map({
@@ -34,12 +34,6 @@ document.getElementById('modal-checkbox').addEventListener('change', e => {
   }
 })
 
-
-// if ($('#modal-checkbox').prop('checked')) {
-//   $('#modal-dismiss').removeClass('disabled');
-//   console.log('checked')
-// }
-
 // variables to hold and edit our color schemes
 var sequential_colors = ['#8A8AFF','#5C5CFF','#2E2EFF','#0000FF','#0000A3']; //blue TRY VARYING SATURATION
 var diverging_colors = ['#ca0020','#f4a582','#f7f7f7','#92c5de','#0571b0'] //['#d7191c','#fdae61','#ffffbf','#abd9e9','#2c7bb6'] //['#d7191c','#fdae61','#ffffbf','#a6d96a','#1a9641'] //red --> green TRY CHANGING TO BLUE
@@ -62,7 +56,15 @@ var colName_to_displayVal = {
   'FCC Download Speed': 'avgwt_maxaddown_fcc',
   'FCC Upload Speed': 'avgwt_maxadup_fcc',
   'Broadband Score': 'dummy_score_for_testing'
-}
+};
+
+// ADD THIS TO INITIAL SQL CALL TO DATABASE- not working, but using for getting values
+var colsToMap = [
+  'dummy_score_for_testing', 'avgwt_maxaddown_fcc', 'avgwt_maxadup_fcc', 'avgwt_downloadspeed_ook',
+  'avgwt_uploadspeed_ook', 'avg_meanthroughputmbps_ml'
+];
+var sql_fromStatement = ' FROM masterdataset_speedtestdata_dummyscores'
+var initial_SQL_qry = 'SELECT '+colsToMap.join()+sql_fromStatement
 
 // Populate the variable selection dropdowns on the frontend:
 // $.each(colName_to_displayVal, function(key, value) {
@@ -73,25 +75,23 @@ var colName_to_displayVal = {
 
 // Obj var to hold arrays of all property values
 var featuresObj = {};
-$.each(colName_to_displayVal, function(key, value) {
-  featuresObj[`${value}`] = []
+$.each(colsToMap, function(i, colName) {
+  featuresObj[`${colName}`] = []
 });
 
-// After map loads, qRF to get properties for charts & percentile calcs
+// After map loads, get properties for drawing charts & calculating percentiles
 afterMap.on('load', function() {
-  var testarr = afterMap.queryRenderedFeatures()
-  //console.log(testarr)
-  var tractset = new Set() //to capture unique tracts since qRF captures dupes
-  testarr.forEach((el) => {
-    if (!tractset.has(el.properties.censustract)) {
-      for (const [key, value] of Object.entries(featuresObj)) {
-        featuresObj[`${key}`].push(el.properties[`${key}`])
-      };
-      tractset.add(el.properties.censustract)
-    };
-  });
-  //console.log(featuresObj); // TO BE REMOVED
+sql.execute(`${initial_SQL_qry}`)
+    .done(function(data) {
+      var rawdata = data.rows;
+      rawdata.forEach((el) => {
+        for (const [key, value] of Object.entries(featuresObj)) {
+          featuresObj[`${key}`].push(el[`${key}`])
+        };
+      });
+    })
 });
+
 
 // Function to determine when the sidenav is open and what it is populated with
 function openNav() {
@@ -252,6 +252,7 @@ checkbox = document.getElementById('checkbox');
 
 // this function will update the variable selections on the first dropdown menu for variable selection:
 $("#first-dropdown li a").click(function() {
+
   document.getElementById("chart1").textContent = "";
   first_var = $(this).text();
   first_check = true;
@@ -450,6 +451,26 @@ $("#reset-button").click(function() {
 
 });
 
+
+
+
+// TESTING
+var sql = new cartodb.SQL({ user: 'usignite-intern' });
+map.on('load', function() {
+  sql.execute("SELECT * FROM masterdataset_speedtestdata_dummyscores")
+    .done(function(data) {
+      console.log(data.rows);
+    })
+    // .error(function(errors) {
+    //   // errors contains a list of errors
+    //   console.log("errors:" + errors);
+    // })
+})
+// TESTING
+
+
+
+
 beforeMap.on('style.load', function() {
   $('#exampleModalCenter').modal('show') // show modal when style loads
 });
@@ -643,7 +664,7 @@ async function getTileSources() {
       {
         type: 'mapnik',
         options: {
-          sql: 'SELECT the_geom_webmercator, censustract, wired25_3_2020_bn, wired100_3_2020_bn, broadbandusage_ms, avg_meanthroughputmbps_ml, speedtests_ml, avgwt_downloadspeed_ook, avgwt_uploadspeed_ook, speedtests_ook, numproviders_fcc, avg_fractioncoverage_fcc, avgwt_maxaddown_fcc, avgwt_maxadup_fcc, dummy_score_for_testing FROM masterdataset_speedtestdata_dummyscores',
+          sql: 'SELECT the_geom_webmercator, censustract, dummy_score_for_testing, avgwt_maxaddown_fcc, avgwt_maxadup_fcc, avgwt_downloadspeed_ook, avgwt_uploadspeed_ook, avg_meanthroughputmbps_ml FROM masterdataset_speedtestdata_dummyscores',
           vector_extent: 4096,
           bufferSize: 1,
           version: '1.3.1'
@@ -683,6 +704,10 @@ var popup = new mapboxgl.Popup({
   closeButton: false,
   closeOnClick: false
 });
+
+
+
+
 
 
 beforeMap.on('load', function() {
