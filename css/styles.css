@@ -168,3 +168,9 @@ body * {
 .mapboxgl-popup {
   z-index: 2;
 }
+
+/* #chart1, #text {
+  text-align: center;
+  padding-top: 20px;
+  font-size: 18px
+} */

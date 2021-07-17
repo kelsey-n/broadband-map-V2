@@ -290,17 +290,6 @@ function createTable(tractValsObj, percentilesObj, clickedTract) {
     },
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(0,0,0,0)',
-    title: {
-      text: 'Broadband Data',
-      font: {
-        size: 18
-      },
-      pad: {
-        t: 30,
-        b: 0
-      }
-    },
-    showlegend: true,
   };
 
   var config = {
@@ -322,6 +311,8 @@ $("#first-dropdown li a").click(function() {
   map.setSlider(window.innerWidth / 2);
 
   document.getElementById("chart1").textContent = "";
+  document.getElementById("left-controls-title").innerHTML = `<p style = 'text-align: right'>Showing <i class="fas fa-caret-left"></i></p>`;
+
   first_var = $(this).text();
   first_check = true;
   $(this).parents(".dropdown").find('.btn').html($(this).text() + ' <span class="caret"></span>');
@@ -383,6 +374,8 @@ $("#second-dropdown li a").click(function() {
   map.setSlider(window.innerWidth / 2);
 
   document.getElementById("chart2").textContent = "";
+  document.getElementById("right-controls-title").innerHTML = `Showing <i class="fas fa-caret-right"></i>`;
+
   second_var = $(this).text() //$(this).data('value') - this is a string AND it is updating the global first_var variable BUT still throwing error when we show the layer... `'${$(this).data('value')}'`
   console.log('global first_var:', first_var)
   console.log(jQuery.type(first_var))
@@ -502,14 +495,16 @@ $("#reset-button").click(function() {
   map.setSlider(0); // reposition slider to the left side
 
   // reset instructions text on left map controls
-  document.getElementById("chart1").innerHTML = `Instructions: <br> Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+  document.getElementById("left-controls-title").innerHTML = `Instructions`;
+  document.getElementById("chart1").innerHTML = `<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit,
     sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
     nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
     reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
     cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`;
 
   // reset broadband score description on right map controls
-  document.getElementById("chart2").innerHTML = `Broadband Coverage Score: <br> Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+  document.getElementById("right-controls-title").innerHTML = `Broadband Score`;
+  document.getElementById("chart2").innerHTML = `<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit,
     sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
     nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
     reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
@@ -892,7 +887,11 @@ afterMap.on('load', function() {
 
   afterMap.on('click', 'scores_layer', function(e) {
 
+    //document.getElementById("chart1").innerHTML = `<p style="text-align: center; padding: 0; margin: 0">Broadband Data</p>`;
+    //document.getElementById("chart1").innerHTML = `Broadband Data`;
     document.getElementById("chart1").textContent = "";
+    document.getElementById("left-controls-title").textContent = "Broadband Data";
+    document.getElementById("right-controls-title").textContent = "Demographic Data";
 
     // get the clicked tract number by querying the rendered features
     var features = afterMap.queryRenderedFeatures(e.point, {
