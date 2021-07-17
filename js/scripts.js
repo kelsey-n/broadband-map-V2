@@ -14,6 +14,7 @@ var afterMap = new mapboxgl.Map({
 var container = '#comparison-container';
 
 var map = new mapboxgl.Compare(beforeMap, afterMap, container);
+map.setSlider(0); // initially position slider off to the side
 
 // Add navigation control:
 afterMap.addControl(new mapboxgl.NavigationControl({
@@ -29,6 +30,7 @@ $(function () {
 document.getElementById('modal-checkbox').addEventListener('change', e => {
   if (e.target.checked) {
     $('#modal-dismiss').removeAttr('disabled');
+
   } else if (!e.target.checked) {
     $('#modal-dismiss').attr('disabled', 'disabled');
   }
@@ -36,10 +38,11 @@ document.getElementById('modal-checkbox').addEventListener('change', e => {
 
 // variables to hold and edit our color schemes
 var sequential_colors = ['#8A8AFF','#5C5CFF','#2E2EFF','#0000FF','#0000A3']; //blue TRY VARYING SATURATION
-var diverging_colors = ['#ca0020','#f4a582','#f7f7f7','#92c5de','#0571b0'] //['#d7191c','#fdae61','#ffffbf','#abd9e9','#2c7bb6'] //['#d7191c','#fdae61','#ffffbf','#a6d96a','#1a9641'] //red --> green TRY CHANGING TO BLUE
+var diverging_colors = ['#ca0020','#f4a582','#f7f7f7','#92c5de','#0571b0']; //['#d7191c','#fdae61','#ffffbf','#abd9e9','#2c7bb6'] //['#d7191c','#fdae61','#ffffbf','#a6d96a','#1a9641'] //red --> green TRY CHANGING TO BLUE
+var diverging_colors_transparent = ['#ca002080','#f4a58280','#f7f7f780','#92c5de80','#0571b080'];
 
-// 'column name in data': 'display value for frontend of visualization'
-var colName_to_displayVal = {
+// 'display column name for frontend of visualization': 'column name in data '
+var displayVal_to_colName = {
   'Wired 25 (BN)': 'wired25_3_2020_bn',
   'Wired 100 (BN)': 'wired100_3_2020_bn',
   //'averagembps_bn': 'Average Speed (BN)',
@@ -58,16 +61,55 @@ var colName_to_displayVal = {
   'Broadband Score': 'dummy_score_for_testing'
 };
 
-// ADD THIS TO INITIAL SQL CALL TO DATABASE- not working, but using for getting values
+// create reverse object of displayVal_to_colName
+var colName_to_displayVal = {};
+for (key in displayVal_to_colName)
+    colName_to_displayVal[displayVal_to_colName[key]] = key
+
+// ADD initial_SQL_qry TO INITIAL SQL CALL TO DATABASE- not working, but using for getting values
+// define the columns we will need for various steps (mapping, clicking on census tracts)
+var sql = new cartodb.SQL({ user: 'usignite-intern' });
+var sql_fromStatement = ' FROM masterdataset_speedtestdata_dummyscores'
 var colsToMap = [
   'dummy_score_for_testing', 'avgwt_maxaddown_fcc', 'avgwt_maxadup_fcc', 'avgwt_downloadspeed_ook',
   'avgwt_uploadspeed_ook', 'avg_meanthroughputmbps_ml'
 ];
-var sql_fromStatement = ' FROM masterdataset_speedtestdata_dummyscores'
 var initial_SQL_qry = 'SELECT '+colsToMap.join()+sql_fromStatement
+var colsForTractClick = [
+  'wired25_3_2020_bn', 'wired100_3_2020_bn','avg_meanthroughputmbps_ml',
+  'avgwt_downloadspeed_ook','avgwt_uploadspeed_ook',
+  'avgwt_maxaddown_fcc', 'avgwt_maxadup_fcc', 'dummy_score_for_testing'
+]
+var temp_SQL_qry = 'SELECT '+colsForTractClick.join()+sql_fromStatement
+
+// Use these perc values for the variables we want to show on census tract click to style table of clicked census tract.
+
+var tempObj = {};
+var percentiles_tractClick = {};
+$.each(colsForTractClick, function(i, colName) {
+  tempObj[`${colName}`] = []
+});
+
+// After map loads, get properties for this temporary object from which we will get percentiles
+afterMap.on('load', function() {
+  sql.execute(`${temp_SQL_qry}`)
+      .done(function(data) {
+        var rawdata = data.rows;
+        rawdata.forEach((el) => {
+          for (const [key, value] of Object.entries(tempObj)) {
+            tempObj[`${key}`].push(el[`${key}`])
+          };
+        });
+        for (const [key, value] of Object.entries(tempObj)) {
+          percentiles_tractClick[`percs_${key}`] = percentiles(value)
+        };
+        tempObj = {}; // reset tempObj since we don't need to keep it saved
+        console.log(percentiles_tractClick)
+      });
+});
 
 // Populate the variable selection dropdowns on the frontend:
-// $.each(colName_to_displayVal, function(key, value) {
+// $.each(displayVal_to_colName, function(key, value) {
 //   $('.dropdown-menu').append(`
 //     <li><a class="dropdown-item" data-value=${value} href="#">${key}</a></li>
 //     `)
@@ -81,15 +123,15 @@ $.each(colsToMap, function(i, colName) {
 
 // After map loads, get properties for drawing charts & calculating percentiles
 afterMap.on('load', function() {
-sql.execute(`${initial_SQL_qry}`)
-    .done(function(data) {
-      var rawdata = data.rows;
-      rawdata.forEach((el) => {
-        for (const [key, value] of Object.entries(featuresObj)) {
-          featuresObj[`${key}`].push(el[`${key}`])
-        };
+  sql.execute(`${initial_SQL_qry}`)
+      .done(function(data) {
+        var rawdata = data.rows;
+        rawdata.forEach((el) => {
+          for (const [key, value] of Object.entries(featuresObj)) {
+            featuresObj[`${key}`].push(el[`${key}`])
+          };
+        });
       });
-    })
 });
 
 
@@ -135,7 +177,15 @@ function percentiles(arr) {
     });
   };
   return percs
-}
+};
+
+function getIndexToIns(arr, num) {
+  let newarr = arr.concat(num);
+  let unique = [...new Set(newarr)];
+  if (unique.length != 5) {
+    return arr.concat(num).sort((a, b) => a - b).indexOf(num) + 1
+  } else {return arr.concat(num).sort((a, b) => a - b).indexOf(num)}
+};
 
 // Function to draw histogram of selected variables
 function createPlot(arr, percentiles, chartid) {
@@ -196,51 +246,68 @@ function createPlot(arr, percentiles, chartid) {
   Plotly.newPlot(chartid, data, layout, config);
 };
 
-// Function to draw INITIAL histogram of broadband score with diverging color scheme
-function createInitialPlot(arr, percentiles) {
-  [0,1,2,3,4].forEach((i) => {
-    if (i == 0) {
-      window[`x${i}`] = arr.filter(value => value < percentiles[i]);
-      var name = `0 - ${percentiles[i]}`;
-    } else if (i == 4) {
-      window[`x${i}`] = arr.filter(value => value >= percentiles[i-1]);
-      var name = `${percentiles[i-1]}+`;
-    } else {
-      window[`x${i}`] = arr.filter(value => value >= percentiles[i-1] && value < percentiles[i]);
-      var name = `${percentiles[i-1]} - ${percentiles[i]}`
-    }
+// Function to draw table of broadband variables for clicked census tract
+function createTable(tractValsObj, percentilesObj, clickedTract) {
+  // show census tract & county & final score. Have frontend name for each variable and its value, row colored by value's percentile position compared to all tracts
 
-    window[`trace${i}`] = {
-      x: window[`x${i}`],
-      type: 'histogram',
-      marker: {
-        color: diverging_colors[i]
-      }
-    }
-  })
+  // STEPS: for each value in tractValsObj, get index when inserted into its relevant percentilesObj array. actual percentile color should be this index+1.
+  // background color of that cell should be index+1'th color in a percentiles color array - use a map here too
+  // diverging_colors_transparent
+  colorMap = {};
+  for (const [key, value] of Object.entries(tractValsObj)) {
+    colorMap[key] = getIndexToIns(percentilesObj[`percs_${key}`], value)
+  }
+  console.log(colorMap)
 
-  var data = [trace0, trace1, trace2, trace3, trace4];
+  var values = [
+        Object.keys(tractValsObj).map(x => colName_to_displayVal[x]),
+        Object.values(tractValsObj)]
+
+  var data = [{
+    type: 'table',
+    header: {
+      values: [`<b>Tract ${clickedTract}<br>County ________</b>`],
+      align: "center",
+      line: {width: 1, color: 'white'},
+      fill: {color: "white"},
+      font: {size: 12, color: "black"}
+    },
+    cells: {
+      values: values,
+      align: "left",
+      line: {color: "white", width: 1},
+      font: {size: 11, color: ["black"]},
+      fill: {color: [Object.keys(tractValsObj).map(x => diverging_colors_transparent[colorMap[x]])]}
+    }
+  }]
 
   var layout = {
-    // margin: {
-    //   t: 30, //top margin
-    //   l: 30, //left margin
-    //   r: 0, //right margin
-    //   b: 20 //bottom margin
-    // },
+    margin: {
+      t: 40, //top margin
+      l: 4, //left margin
+      r: 0, //right margin
+      b: 0 //bottom margin
+    },
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(0,0,0,0)',
-    barmode: 'stack',
-    showlegend: false,
-    showticklabels: false,
-    title: 'Broadband Coverage Score'
+    title: {
+      text: 'Broadband Data',
+      font: {
+        size: 18
+      },
+      pad: {
+        t: 30,
+        b: 0
+      }
+    },
+    showlegend: true,
   };
 
   var config = {
     'displayModeBar': false // this is the line that hides the bar.
   };
 
-  Plotly.newPlot('chart2', data, layout, config);
+  Plotly.newPlot('chart1', data, layout, config);
 };
 
 // variables to hold the user's selection of variables to display:
@@ -252,13 +319,14 @@ checkbox = document.getElementById('checkbox');
 
 // this function will update the variable selections on the first dropdown menu for variable selection:
 $("#first-dropdown li a").click(function() {
+  map.setSlider(window.innerWidth / 2);
 
   document.getElementById("chart1").textContent = "";
   first_var = $(this).text();
   first_check = true;
   $(this).parents(".dropdown").find('.btn').html($(this).text() + ' <span class="caret"></span>');
 
-  firstarr = featuresObj[`${colName_to_displayVal[first_var]}`];
+  firstarr = featuresObj[`${displayVal_to_colName[first_var]}`];
   // var testpercentiles = percentiles(firstarr) // TO DELETE
   // // create histogram for first variable
   // createPlot(firstarr, testpercentiles)
@@ -274,7 +342,7 @@ $("#first-dropdown li a").click(function() {
     console.log(intervals);
     beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
       'step',
-      ['get', colName_to_displayVal[first_var]],
+      ['get', displayVal_to_colName[first_var]],
       sequential_colors[0],
       intervals[0], sequential_colors[1],
       intervals[1], sequential_colors[2],
@@ -285,7 +353,7 @@ $("#first-dropdown li a").click(function() {
       createPlot(secondarr, intervals, 'chart2');
       afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
         'step',
-        ['get', colName_to_displayVal[second_var]],
+        ['get', displayVal_to_colName[second_var]],
         sequential_colors[0],
         intervals[0], sequential_colors[1],
         intervals[1], sequential_colors[2],
@@ -299,7 +367,7 @@ $("#first-dropdown li a").click(function() {
     console.log(intervals);
     beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
       'step',
-      ['get', colName_to_displayVal[first_var]],
+      ['get', displayVal_to_colName[first_var]],
       sequential_colors[0],
       intervals[0], sequential_colors[1],
       intervals[1], sequential_colors[2],
@@ -312,6 +380,9 @@ $("#first-dropdown li a").click(function() {
 
 // this function will update the variable selections on the second dropdown menu for variable selection:
 $("#second-dropdown li a").click(function() {
+  map.setSlider(window.innerWidth / 2);
+
+  document.getElementById("chart2").textContent = "";
   second_var = $(this).text() //$(this).data('value') - this is a string AND it is updating the global first_var variable BUT still throwing error when we show the layer... `'${$(this).data('value')}'`
   console.log('global first_var:', first_var)
   console.log(jQuery.type(first_var))
@@ -319,7 +390,7 @@ $("#second-dropdown li a").click(function() {
   $(this).parents(".dropdown").find('.btn').html($(this).text() + ' <span class="caret"></span>');
   // $(this).parents(".dropdown").find('.btn').val($(this).data('value')); // "allows you to have different display text and data value for each element - from SO"
 
-  secondarr = featuresObj[`${colName_to_displayVal[second_var]}`]
+  secondarr = featuresObj[`${displayVal_to_colName[second_var]}`]
 
   afterMap.setLayoutProperty('scores_layer', 'visibility','none');
   afterMap.setLayoutProperty('second_selected_layer', 'visibility','visible');
@@ -331,7 +402,7 @@ $("#second-dropdown li a").click(function() {
     console.log(intervals);
     afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
       'step',
-      ['get', colName_to_displayVal[second_var]],
+      ['get', displayVal_to_colName[second_var]],
       sequential_colors[0],
       intervals[0], sequential_colors[1],
       intervals[1], sequential_colors[2],
@@ -342,7 +413,7 @@ $("#second-dropdown li a").click(function() {
       createPlot(firstarr, intervals, 'chart1');
       beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
         'step',
-        ['get', colName_to_displayVal[first_var]],
+        ['get', displayVal_to_colName[first_var]],
         sequential_colors[0],
         intervals[0], sequential_colors[1],
         intervals[1], sequential_colors[2],
@@ -356,7 +427,7 @@ $("#second-dropdown li a").click(function() {
     console.log(intervals);
     afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
       'step',
-      ['get', colName_to_displayVal[second_var]],
+      ['get', displayVal_to_colName[second_var]],
       sequential_colors[0],
       intervals[0], sequential_colors[1],
       intervals[1], sequential_colors[2],
@@ -376,7 +447,7 @@ checkbox.addEventListener('change', e => {
       console.log(intervals)
       beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
         'step',
-        ['get', colName_to_displayVal[first_var]],
+        ['get', displayVal_to_colName[first_var]],
         sequential_colors[0],
         intervals[0], sequential_colors[1],
         intervals[1], sequential_colors[2],
@@ -385,7 +456,7 @@ checkbox.addEventListener('change', e => {
       ]);
       afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
         'step',
-        ['get', colName_to_displayVal[second_var]],
+        ['get', displayVal_to_colName[second_var]],
         sequential_colors[0],
         intervals[0], sequential_colors[1],
         intervals[1], sequential_colors[2],
@@ -402,7 +473,7 @@ checkbox.addEventListener('change', e => {
       console.log(intervals_2)
       beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
         'step',
-        ['get', colName_to_displayVal[first_var]],
+        ['get', displayVal_to_colName[first_var]],
         sequential_colors[0],
         intervals_1[0], sequential_colors[1],
         intervals_1[1], sequential_colors[2],
@@ -411,7 +482,7 @@ checkbox.addEventListener('change', e => {
       ]);
       afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
         'step',
-        ['get', colName_to_displayVal[second_var]],
+        ['get', displayVal_to_colName[second_var]],
         sequential_colors[0],
         intervals_2[0], sequential_colors[1],
         intervals_2[1], sequential_colors[2],
@@ -428,6 +499,8 @@ $("#reset-button").click(function() {
   beforeMap.setLayoutProperty('scores_layer', 'visibility','visible');
   beforeMap.setLayoutProperty('first_selected_layer', 'visibility','none');
 
+  map.setSlider(0); // reposition slider to the left side
+
   // reset instructions text on left map controls
   document.getElementById("chart1").innerHTML = `Instructions: <br> Lorem ipsum dolor sit amet, consectetur adipiscing elit,
     sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
@@ -435,38 +508,24 @@ $("#reset-button").click(function() {
     reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
     cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`;
 
-    // recreate broadband score plot on right map controls
-    var initial_intervals = percentiles(featuresObj['dummy_score_for_testing']);
-    createInitialPlot(featuresObj['dummy_score_for_testing'], initial_intervals);
+  // reset broadband score description on right map controls
+  document.getElementById("chart2").innerHTML = `Broadband Coverage Score: <br> Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+    sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+    nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
+    reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+    cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`;
 
-    // reset variables
-    first_var = 'Broadband Score';
-    second_var = 'Broadband Score';
-    firstarr = [];
-    secondarr = [];
+  // reset variables
+  first_var = 'Broadband Score';
+  second_var = 'Broadband Score';
+  firstarr = [];
+  secondarr = [];
 
-    // reset button text
-    document.getElementById('left-button').innerHTML = 'Select ISP-reported speed <span class="caret"></span>'
-    document.getElementById('right-button').innerHTML = 'Select measured speed <span class="caret"></span>'
+  // reset button text
+  document.getElementById('left-button').innerHTML = 'Select ISP-reported speed <span class="caret"></span>'
+  document.getElementById('right-button').innerHTML = 'Select measured speed <span class="caret"></span>'
 
 });
-
-
-
-
-// TESTING
-var sql = new cartodb.SQL({ user: 'usignite-intern' });
-map.on('load', function() {
-  sql.execute("SELECT * FROM masterdataset_speedtestdata_dummyscores")
-    .done(function(data) {
-      console.log(data.rows);
-    })
-    // .error(function(errors) {
-    //   // errors contains a list of errors
-    //   console.log("errors:" + errors);
-    // })
-})
-// TESTING
 
 
 
@@ -530,8 +589,8 @@ afterMap.on('load', function() {
   });
 
   // plot scores on right map controls:
-  var initial_intervals = percentiles(featuresObj['dummy_score_for_testing']);
-  createInitialPlot(featuresObj['dummy_score_for_testing'], initial_intervals);
+  // var initial_intervals = percentiles(featuresObj['dummy_score_for_testing']);
+  // createInitialPlot(featuresObj['dummy_score_for_testing'], initial_intervals);
 })
 
 const REQUEST_GET_MAX_URL_LENGTH = 2048;
@@ -612,7 +671,7 @@ async function addCartoLayer() {
       paint: {
         'fill-color': [
           'step',
-          ['get', colName_to_displayVal[first_var]],
+          ['get', displayVal_to_colName[first_var]],
           sequential_colors[0],
           25, sequential_colors[1],
           100, sequential_colors[2],
@@ -727,8 +786,8 @@ beforeMap.on('load', function() {
       //Extract necessary variables:
       var tract_id = hoveredFeature.properties.censustract;
       // var county_name = INCLUDE COUNTY NAME HERE
-      var first_var_value = hoveredFeature.properties[`${colName_to_displayVal[first_var]}`];
-      var second_var_value = hoveredFeature.properties[`${colName_to_displayVal[second_var]}`];
+      var first_var_value = hoveredFeature.properties[`${displayVal_to_colName[first_var]}`];
+      var second_var_value = hoveredFeature.properties[`${displayVal_to_colName[second_var]}`];
 
       if (first_var === second_var) {
         window['popupContent'] = `
@@ -788,8 +847,8 @@ afterMap.on('load', function() {
       //Extract necessary variables:
       var tract_id = hoveredFeature.properties.censustract;
       // var county_name = INCLUDE COUNTY NAME HERE
-      var first_var_value = hoveredFeature.properties[`${colName_to_displayVal[first_var]}`];
-      var second_var_value = hoveredFeature.properties[`${colName_to_displayVal[second_var]}`];
+      var first_var_value = hoveredFeature.properties[`${displayVal_to_colName[first_var]}`];
+      var second_var_value = hoveredFeature.properties[`${displayVal_to_colName[second_var]}`];
 
       if (first_var === second_var) {
         window['popupContent'] = `
@@ -830,4 +889,27 @@ afterMap.on('load', function() {
         })
       }
   });
+
+  afterMap.on('click', 'scores_layer', function(e) {
+
+    document.getElementById("chart1").textContent = "";
+
+    // get the clicked tract number by querying the rendered features
+    var features = afterMap.queryRenderedFeatures(e.point, {
+        layers: ['scores_layer'],
+    });
+    var clickedFeature = features[0]
+    var clickedTract = clickedFeature.properties.censustract
+
+    // sql query to get data for clicked tract
+    var tractClick_SQL_qry = 'SELECT '+colsForTractClick.join()+sql_fromStatement+' WHERE censustract = '+clickedTract
+    sql.execute(`${tractClick_SQL_qry}`)
+       .done(function(data) {
+        window['tractValues'] = data.rows[0];
+        console.log(tractValues);
+        // create table with plotly HERE using tractValues and percentilesObject as input
+        createTable(tractValues, percentiles_tractClick, clickedTract);
+      });
+
+  })
 })

@@ -160,3 +160,11 @@ body * {
   height: 350px;
   width: auto;
 }
+
+.mapboxgl-compare {
+  z-index: 0
+}
+
+.mapboxgl-popup {
+  z-index: 2;
+}
