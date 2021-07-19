@@ -199,9 +199,9 @@ body * {
   }
 .my-legend {
   font-size: 70%;
-  color: #999;
+  color: black;
   clear: both;
-  left: 300px;
+  left: 320px;
   position: fixed;
   }
 .my-legend a {
@@ -210,7 +210,9 @@ body * {
 
 #broadband-legend {
   position: absolute;
-  visibility: visible;
+  visibility: hidden;
+  top: 320px;
+  left: 90px;
 }
 
 /* #chart1, #text {

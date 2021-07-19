@@ -283,7 +283,7 @@ function createTable(tractValsObj, percentilesObj, clickedTract) {
 
   var layout = {
     margin: {
-      t: 40, //top margin
+      t: 0, //top margin
       l: 4, //left margin
       r: 0, //right margin
       b: 0 //bottom margin
@@ -896,7 +896,7 @@ afterMap.on('load', function() {
     document.getElementById("chart2").textContent = "";
     document.getElementById("left-controls-title").textContent = "Broadband Data";
     document.getElementById("right-controls-title").textContent = "Demographic Data";
-    // document.getElementById("broadband-legend").style.visibility = 'visible';
+    document.getElementById("broadband-legend").style.visibility = 'visible';
 
     // get the clicked tract number by querying the rendered features
     var features = afterMap.queryRenderedFeatures(e.point, {
