@@ -103,16 +103,6 @@
         <div id='map-controls-left' class='map-controls'>
           <div class='map-controls-content'>
             <h4 id='left-controls-title'>Instructions</h4>
-            <div class="dropdown">
-              <button class="btn btn-outline-secondary dropdown-toggle" id='left-button' type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Select ISP-reported speed
-              </button>
-              <div class="dropdown-menu" id="first-dropdown" aria-labelledby="dropdownMenuButton">
-                <!-- menu will be populated with JQuery -->
-                <li><a class="dropdown-item" href="#">FCC Download Speed</a></li>
-                <li><a class="dropdown-item" href="#">FCC Upload Speed</a></li>
-              </div>
-            </div>
             <div class="chart" id='chart1'>
               <!-- to be populated when user selects first var -->
               <p><br>Lorem ipsum dolor sit amet, consectetur adipiscing elit,
@@ -120,6 +110,16 @@
                 nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
                 reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
                 cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            </div>
+            <div class="dropdown">
+              <button class="btn btn-outline-secondary dropdown-toggle" id='left-button' type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Split map left
+              </button>
+              <div class="dropdown-menu" id="first-dropdown" aria-labelledby="dropdownMenuButton">
+                <!-- menu will be populated with JQuery -->
+                <li><a class="dropdown-item" href="#">FCC Download Speed</a></li>
+                <li><a class="dropdown-item" href="#">FCC Upload Speed</a></li>
+              </div>
             </div>
             <button class="btn btn-outline-secondary btn-sm" id='reset-button' type="button">
               Reset map/Show Scores
@@ -130,17 +130,6 @@
         <div id='map-controls-right' class='map-controls'>
           <div class='map-controls-content'>
             <h4 id='right-controls-title'>Broadband Score</h4>
-            <div class="dropdown">
-              <button class="btn btn-outline-secondary dropdown-toggle" id='right-button' type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Select measured speed
-              </button>
-              <div class="dropdown-menu" id="second-dropdown" aria-labelledby="dropdownMenuButton">
-                <!-- menu will be populated with JQuery  -->
-                <li><a class="dropdown-item" href="#">Ookla Download Speed</a></li>
-                <li><a class="dropdown-item" href="#">Ookla Upload Speed</a></li>
-                <li><a class="dropdown-item" href="#">M-Lab Throughput</a></li>
-              </div>
-            </div>
             <div class="chart" id='chart2'>
               <!-- to be populated when user selects second var -->
               <p><br>Lorem ipsum dolor sit amet, consectetur adipiscing elit,
@@ -148,6 +137,17 @@
                 nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
                 reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
                 cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            </div>
+            <div class="dropdown">
+              <button class="btn btn-outline-secondary dropdown-toggle" id='right-button' type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Split map right 
+              </button>
+              <div class="dropdown-menu" id="second-dropdown" aria-labelledby="dropdownMenuButton">
+                <!-- menu will be populated with JQuery  -->
+                <li><a class="dropdown-item" href="#">Ookla Download Speed</a></li>
+                <li><a class="dropdown-item" href="#">Ookla Upload Speed</a></li>
+                <li><a class="dropdown-item" href="#">M-Lab Throughput</a></li>
+              </div>
             </div>
             <div class="form-check">
               <input class="form-check-input" type="checkbox" value="" id="checkbox" checked>
