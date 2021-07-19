@@ -8,8 +8,8 @@
     <link href = "https://code.jquery.com/ui/1.10.4/themes/ui-darkness/jquery-ui.css" rel = "stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <!-- TESTING -->
-    <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/3.15/themes/css/cartodb.css" />
-    <script src="http://libs.cartocdn.com/cartodb.js/v3/3.15/cartodb.js"></script>
+    <link rel="stylesheet" href="//libs.cartocdn.com/cartodb.js/v3/3.15/themes/css/cartodb.css" />
+    <script src="//libs.cartocdn.com/cartodb.js/v3/3.15/cartodb.js"></script>
     <!-- TESTING -->
     <link rel="stylesheet" href="css/styles.css">
   </head>
@@ -76,7 +76,20 @@
         <div id="before" class="map"></div>
         <div id="after" class="map"></div>
 
-        <div id='sidenav-buttons'>
+        <div class='my-legend'>
+          <div class='legend-title'>Broadband Score</div>
+          <div class='legend-scale'>
+            <ul class='legend-labels'>
+              <li><span style='background:#ca0020;'></span>1</li>
+              <li><span style='background:#f4a582;'></span>2</li>
+              <li><span style='background:#f7f7f7;'></span>3</li>
+              <li><span style='background:#92c5de;'></span>4</li>
+              <li><span style='background:#0571b0;'></span>5</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- <div id='sidenav-buttons'>
           <button class="sidenav-button" id="context-menu-button" onclick="openNav()" >
             <span class='original'>Why</span>
             <span id='context-onhover' class='onhover'>Why explore this map?</span>
@@ -97,7 +110,7 @@
             <span class='original'>Legend</span>
             <span class='onhover'>Legend</span>
           </button>
-        </div>
+        </div> -->
 
         <!-- Map controls for filtering map data -->
         <div id='map-controls-left' class='map-controls'>
@@ -105,11 +118,14 @@
             <h4 id='left-controls-title'>Instructions</h4>
             <div class="chart" id='chart1'>
               <!-- to be populated when user selects first var -->
-              <p><br>Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit,
                 sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
                 nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
                 reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
                 cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                <div class="legend" id="broadband-legend">
+                  Broadband Data Legend here
+                </div>
             </div>
             <div class="dropdown">
               <button class="btn btn-outline-secondary dropdown-toggle" id='left-button' type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -132,7 +148,7 @@
             <h4 id='right-controls-title'>Broadband Score</h4>
             <div class="chart" id='chart2'>
               <!-- to be populated when user selects second var -->
-              <p><br>Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit,
                 sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
                 nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
                 reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
@@ -140,7 +156,7 @@
             </div>
             <div class="dropdown">
               <button class="btn btn-outline-secondary dropdown-toggle" id='right-button' type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Split map right 
+                Split map right
               </button>
               <div class="dropdown-menu" id="second-dropdown" aria-labelledby="dropdownMenuButton">
                 <!-- menu will be populated with JQuery  -->

@@ -159,6 +159,7 @@ body * {
 .chart {
   height: 350px;
   width: auto;
+  position: relative;
 }
 
 .mapboxgl-compare {
@@ -167,6 +168,49 @@ body * {
 
 .mapboxgl-popup {
   z-index: 2;
+}
+
+.my-legend .legend-title {
+  text-align: left;
+  margin-bottom: 8px;
+  font-weight: bold;
+  font-size: 90%;
+  }
+.my-legend .legend-scale ul {
+  margin: 0;
+  padding: 0;
+  float: left;
+  list-style: none;
+  }
+.my-legend .legend-scale ul li {
+  display: block;
+  float: left;
+  width: 20px;
+  margin-bottom: 6px;
+  text-align: center;
+  font-size: 80%;
+  list-style: none;
+  }
+.my-legend ul.legend-labels li span {
+  display: block;
+  float: left;
+  height: 15px;
+  width: 20px;
+  }
+.my-legend {
+  font-size: 70%;
+  color: #999;
+  clear: both;
+  left: 300px;
+  position: fixed;
+  }
+.my-legend a {
+  color: #777;
+  }
+
+#broadband-legend {
+  position: absolute;
+  visibility: visible;
 }
 
 /* #chart1, #text {
