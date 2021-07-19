@@ -189,7 +189,6 @@ function getIndexToIns(arr, num) {
 
 // Function to draw histogram of selected variables
 function createPlot(arr, percentiles, chartid) {
-  // TO DO: check how mapbox stops works for edge vals!!!!
   [0,1,2,3,4].forEach((i) => {
     if (i == 0) {
       window[`x${i}`] = arr.filter(value => value < percentiles[i]);
@@ -201,6 +200,10 @@ function createPlot(arr, percentiles, chartid) {
       window[`x${i}`] = arr.filter(value => value >= percentiles[i-1] && value < percentiles[i]);
       var name = `${percentiles[i-1]} - ${percentiles[i]}`
     }
+
+    if (chartid == `chart${1}`) {
+      xaxistitle = first_var
+    } else xaxistitle = second_var
 
     window[`trace${i}`] = { // change this var name to be the range
       x: window[`x${i}`],
@@ -217,9 +220,9 @@ function createPlot(arr, percentiles, chartid) {
   var layout = {
     margin: {
       t: 30, //top margin
-      l: 30, //left margin
+      l: 50, //left margin
       r: 0, //right margin
-      b: 20 //bottom margin
+      b: 0 //bottom margin
     },
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(0,0,0,0)',
@@ -236,6 +239,24 @@ function createPlot(arr, percentiles, chartid) {
       orientation: 'v',
       traceorder: 'normal',
       tracegroupgap: 0
+    },
+    yaxis: {
+      title: {
+        text: 'Number of census tracts',
+        font: {
+          size: 10
+        },
+        standoff: 0
+      }
+    },
+    xaxis: {
+      title: {
+        text: `${xaxistitle}`,
+        font: {
+          size: 10
+        },
+        standoff: 0
+      }
     }
   };
 
@@ -311,12 +332,14 @@ $("#first-dropdown li a").click(function() {
   map.setSlider(window.innerWidth / 2);
 
   document.getElementById("chart1").textContent = "";
-  document.getElementById("left-controls-title").innerHTML = `<p style = 'text-align: right'>Showing <i class="fas fa-caret-left"></i></p>`;
   document.getElementsByClassName("my-legend")[0].style.visibility = 'hidden';
+  document.getElementById("broadband-legend").style.visibility = 'hidden';
 
   first_var = $(this).text();
   first_check = true;
   $(this).parents(".dropdown").find('.btn').html($(this).text() + ' <span class="caret"></span>');
+  document.getElementById("left-controls-title").innerHTML = `<p style = 'text-align: right'>${first_var} <i class="fas fa-caret-left"></i></p>`;
+
 
   firstarr = featuresObj[`${displayVal_to_colName[first_var]}`];
   // var testpercentiles = percentiles(firstarr) // TO DELETE
@@ -367,6 +390,11 @@ $("#first-dropdown li a").click(function() {
       intervals[3], sequential_colors[4],
     ]);
   };
+  if (first_var != 'Broadband Score' && second_var != 'Broadband Score') {
+    $('#checkbox').removeAttr('disabled');
+  } else {
+    $('#checkbox').attr('disabled', 'disabled');
+  }
 });
 
 
@@ -375,15 +403,11 @@ $("#second-dropdown li a").click(function() {
   map.setSlider(window.innerWidth / 2);
 
   document.getElementById("chart2").textContent = "";
-  document.getElementById("right-controls-title").innerHTML = `Showing <i class="fas fa-caret-right"></i>`;
   document.getElementsByClassName("my-legend")[0].style.visibility = 'hidden';
 
   second_var = $(this).text() //$(this).data('value') - this is a string AND it is updating the global first_var variable BUT still throwing error when we show the layer... `'${$(this).data('value')}'`
-  console.log('global first_var:', first_var)
-  console.log(jQuery.type(first_var))
-  //console.log(`${first_var}`)
   $(this).parents(".dropdown").find('.btn').html($(this).text() + ' <span class="caret"></span>');
-  // $(this).parents(".dropdown").find('.btn').val($(this).data('value')); // "allows you to have different display text and data value for each element - from SO"
+  document.getElementById("right-controls-title").innerHTML = `<i class="fas fa-caret-right"></i> ${second_var}`;
 
   secondarr = featuresObj[`${displayVal_to_colName[second_var]}`]
 
@@ -430,6 +454,11 @@ $("#second-dropdown li a").click(function() {
       intervals[3], sequential_colors[4],
     ]);
   };
+  if (first_var != 'Broadband Score' && second_var != 'Broadband Score') {
+    $('#checkbox').removeAttr('disabled');
+  } else {
+    $('#checkbox').attr('disabled', 'disabled');
+  }
 });
 
 // listen for a change to the checkbox
@@ -494,6 +523,8 @@ $("#reset-button").click(function() {
   beforeMap.setLayoutProperty('scores_layer', 'visibility','visible');
   beforeMap.setLayoutProperty('first_selected_layer', 'visibility','none');
   document.getElementsByClassName("my-legend")[0].style.visibility = 'visible';
+  document.getElementById("broadband-legend").style.visibility = 'hidden';
+  $('#checkbox').attr('disabled', 'disabled')
 
   map.setSlider(0); // reposition slider to the left side
 
@@ -520,13 +551,10 @@ $("#reset-button").click(function() {
   secondarr = [];
 
   // reset button text
-  document.getElementById('left-button').innerHTML = 'Select ISP-reported speed <span class="caret"></span>'
-  document.getElementById('right-button').innerHTML = 'Select measured speed <span class="caret"></span>'
+  document.getElementById('left-button').innerHTML = 'Split map left <span class="caret"></span>'
+  document.getElementById('right-button').innerHTML = 'Split map right <span class="caret"></span>'
 
 });
-
-
-
 
 beforeMap.on('style.load', function() {
   $('#exampleModalCenter').modal('show') // show modal when style loads
@@ -584,6 +612,25 @@ afterMap.on('load', function() {
       'line-width': 2,
       'line-color': 'black',
     }
+  });
+
+    // add an empty data source, which we will use to highlight the census tract that the user is hovering over
+    afterMap.addSource('highlight-clickedTract-source-afterMap', {
+      type: 'geojson',
+      data: {
+        type: 'FeatureCollection',
+        features: []
+      }
+    });
+
+    // add a layer for the hovered census tract
+    afterMap.addLayer({
+      id: 'highlight-clickedTract-layer-afterMap',
+      type: 'fill',
+      source: 'highlight-clickedTract-source-afterMap',
+      paint: {
+        'fill-color': 'black'
+      }
   });
 
   // plot scores on right map controls:
@@ -914,6 +961,14 @@ afterMap.on('load', function() {
         // create table with plotly HERE using tractValues and percentilesObject as input
         createTable(tractValues, percentiles_tractClick, clickedTract);
       });
+
+    var clickedFeature_highlightData = {
+      'type': 'Feature',
+      'geometry': clickedFeature.geometry
+    };
+    // set this circle's geometry and properties as the data for the clicked highlight source
+    afterMap.getSource('highlight-clickedTract-source-afterMap').setData(clickedFeature_highlightData);
+
 
   })
 })
