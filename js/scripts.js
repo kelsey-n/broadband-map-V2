@@ -348,6 +348,7 @@ $("#first-dropdown li a").click(function() {
 
   // show fill layer for first variable
   beforeMap.setLayoutProperty('scores_layer', 'visibility','none');
+  afterMap.setLayoutProperty('scores_layer', 'visibility','none');
   beforeMap.setLayoutProperty('first_selected_layer', 'visibility','visible');
 
   if ($('#checkbox').prop('checked')) {
@@ -390,11 +391,18 @@ $("#first-dropdown li a").click(function() {
       intervals[3], sequential_colors[4],
     ]);
   };
+  
   if (first_var != 'Broadband Score' && second_var != 'Broadband Score') {
     $('#checkbox').removeAttr('disabled');
   } else {
     $('#checkbox').attr('disabled', 'disabled');
-  }
+  };
+
+  afterMap.getSource('highlight-clickedTract-source-afterMap').setData({
+    'type': 'FeatureCollection',
+    'features': []
+  });
+
 });
 
 
@@ -412,6 +420,7 @@ $("#second-dropdown li a").click(function() {
   secondarr = featuresObj[`${displayVal_to_colName[second_var]}`]
 
   afterMap.setLayoutProperty('scores_layer', 'visibility','none');
+  beforeMap.setLayoutProperty('scores_layer', 'visibility','none');
   afterMap.setLayoutProperty('second_selected_layer', 'visibility','visible');
 
   if ($('#checkbox').prop('checked')) {
@@ -454,11 +463,18 @@ $("#second-dropdown li a").click(function() {
       intervals[3], sequential_colors[4],
     ]);
   };
+
   if (first_var != 'Broadband Score' && second_var != 'Broadband Score') {
     $('#checkbox').removeAttr('disabled');
   } else {
     $('#checkbox').attr('disabled', 'disabled');
-  }
+  };
+
+  afterMap.getSource('highlight-clickedTract-source-afterMap').setData({
+    'type': 'FeatureCollection',
+    'features': []
+  });
+
 });
 
 // listen for a change to the checkbox
@@ -529,7 +545,7 @@ $("#reset-button").click(function() {
   map.setSlider(0); // reposition slider to the left side
 
   // reset instructions text on left map controls
-  document.getElementById("left-controls-title").innerHTML = `Instructions`;
+  document.getElementById("left-controls-title").innerHTML = `About this map`;
   document.getElementById("chart1").innerHTML = `Lorem ipsum dolor sit amet, consectetur adipiscing elit,
     sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
     nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
@@ -553,6 +569,11 @@ $("#reset-button").click(function() {
   // reset button text
   document.getElementById('left-button').innerHTML = 'Split map left <span class="caret"></span>'
   document.getElementById('right-button').innerHTML = 'Split map right <span class="caret"></span>'
+
+  afterMap.getSource('highlight-clickedTract-source-afterMap').setData({
+    'type': 'FeatureCollection',
+    'features': []
+  })
 
 });
 
@@ -626,10 +647,11 @@ afterMap.on('load', function() {
     // add a layer for the hovered census tract
     afterMap.addLayer({
       id: 'highlight-clickedTract-layer-afterMap',
-      type: 'fill',
+      type: 'line',
       source: 'highlight-clickedTract-source-afterMap',
       paint: {
-        'fill-color': 'black'
+        'line-width': 2,
+        'line-color': 'black',
       }
   });
 
@@ -952,22 +974,30 @@ afterMap.on('load', function() {
     var clickedFeature = features[0]
     var clickedTract = clickedFeature.properties.censustract
 
-    // sql query to get data for clicked tract
-    var tractClick_SQL_qry = 'SELECT '+colsForTractClick.join()+sql_fromStatement+' WHERE censustract = '+clickedTract
-    sql.execute(`${tractClick_SQL_qry}`)
-       .done(function(data) {
-        window['tractValues'] = data.rows[0];
-        console.log(tractValues);
-        // create table with plotly HERE using tractValues and percentilesObject as input
-        createTable(tractValues, percentiles_tractClick, clickedTract);
-      });
+    // Check whether features exist
+    if (features.length > 0) {
+      // sql query to get data for clicked tract
+      var tractClick_SQL_qry = 'SELECT '+colsForTractClick.join()+sql_fromStatement+' WHERE censustract = '+clickedTract
+      sql.execute(`${tractClick_SQL_qry}`)
+         .done(function(data) {
+          window['tractValues'] = data.rows[0];
+          console.log(tractValues);
+          // create table with plotly HERE using tractValues and percentilesObject as input
+          createTable(tractValues, percentiles_tractClick, clickedTract);
+        });
 
-    var clickedFeature_highlightData = {
-      'type': 'Feature',
-      'geometry': clickedFeature.geometry
-    };
-    // set this circle's geometry and properties as the data for the clicked highlight source
-    afterMap.getSource('highlight-clickedTract-source-afterMap').setData(clickedFeature_highlightData);
+      var clickedFeature_highlightData = {
+        'type': 'Feature',
+        'geometry': clickedFeature.geometry
+      };
+      // set this circle's geometry and properties as the data for the clicked highlight source
+      afterMap.getSource('highlight-clickedTract-source-afterMap').setData(clickedFeature_highlightData);
+    } else {//if len(features) <1
+      afterMap.getSource('highlight-clickedTract-source-afterMap').setData({
+        'type': 'FeatureCollection',
+        'features': []
+      })
+    }
 
 
   })
