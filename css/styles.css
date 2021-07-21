@@ -222,7 +222,7 @@ a:hover {
 
 .mapboxgl-popup {
   z-index: 10;
-  position: absolute;
+  position: fixed;
 }
 
 .my-legend .legend-title {

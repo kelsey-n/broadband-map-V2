@@ -95,6 +95,7 @@ document.getElementById('scores-view-arrow').style.left = `170px`
 document.getElementById('slide-arrow').style.top = `${windowHeight/2 - 60}px`
 document.getElementById('slide-arrow').style.left = `${windowWidth/2 - 71}px`
 
+// function to show glimpse of comparison map when user hovers on relevant words in instructions
 $('#slide-a-link').hover(function() {
   map.setSlider(windowWidth/2);
   beforeMap.setLayoutProperty('scores_layer', 'visibility','none');
@@ -292,7 +293,7 @@ function createPlot(arr, percentiles, chartid) {
     },
     xaxis: {
       title: {
-        text: `${xaxistitle}`,
+        text: `${xaxistitle} (Mbps)`,
         font: {
           size: 10
         },
@@ -310,11 +311,6 @@ function createPlot(arr, percentiles, chartid) {
 
 // Function to draw table of broadband variables for clicked census tract
 function createTable(tractValsObj, percentilesObj, clickedTract) {
-  // show census tract & county & final score. Have frontend name for each variable and its value, row colored by value's percentile position compared to all tracts
-
-  // STEPS: for each value in tractValsObj, get index when inserted into its relevant percentilesObj array. actual percentile color should be this index+1.
-  // background color of that cell should be index+1'th color in a percentiles color array - use a map here too
-  // diverging_colors_transparent
   colorMap = {};
   for (const [key, value] of Object.entries(tractValsObj)) {
     colorMap[key] = getIndexToIns(percentilesObj[`percs_${key}`], value)
@@ -345,17 +341,17 @@ function createTable(tractValsObj, percentilesObj, clickedTract) {
 
   var layout = {
     margin: {
-      t: 0, //top margin
-      l: 4, //left margin
-      r: 0, //right margin
-      b: 0 //bottom margin
+      t: 0,
+      l: 4,
+      r: 0,
+      b: 0
     },
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(0,0,0,0)',
   };
 
   var config = {
-    'displayModeBar': false // this is the line that hides the bar.
+    'displayModeBar': false // hide plotly toolbar.
   };
 
   Plotly.newPlot('chart1', data, layout, config);
@@ -396,9 +392,6 @@ $("#first-dropdown li a").click(function() {
 
 
   firstarr = featuresObj[`${displayVal_to_colName[first_var]}`];
-  // var testpercentiles = percentiles(firstarr) // TO DELETE
-  // // create histogram for first variable
-  // createPlot(firstarr, testpercentiles)
 
   // show fill layer for first variable
   beforeMap.setLayoutProperty('scores_layer', 'visibility','none');
@@ -655,13 +648,12 @@ beforeMap.on('load', function() {
     type: 'line',
     source: 'highlight-tract-source-beforeMap',
     paint: {
-      'line-width': 5,
+      'line-width': 2,
       'line-color': 'black',
       // 'fill-opacity': 1,
       // 'fill-outline-color': 'black'
     }
   });
-  beforeMap.moveLayer('highlight-tract-layer-beforeMap', 'scores_layer')
 })
 
 // Function to add styling for hovered census tract
@@ -883,8 +875,7 @@ async function getTileSources() {
 var popup = new mapboxgl.Popup({
   closeButton: false,
   closeOnClick: false,
-  anchor: "",
-  offset: [20,0]
+  anchor: ""
 });
 
 // create function to log x position of mouse. in aftermap: change popup anchor to left if MouseX-sliderPos between 0 and threshold
