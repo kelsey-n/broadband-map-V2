@@ -112,6 +112,54 @@ body * {
   text-decoration: none;
 }
 
+#chart1 a {
+  text-decoration: underline !important;
+  /* font-weight: bold; */
+  color: #5D3FD3
+}
+
+#chart1 {
+  font-size: 12px
+}
+
+a:hover {
+  cursor: pointer;
+}
+
+.arrow {
+  display: none;
+  position: fixed;
+  z-index: 10;
+}
+
+#address-box-a-link:hover + #address-box-arrow {
+  display: block;
+}
+
+#census-tract-a-link:hover + #census-tract-arrow {
+  display: block;
+}
+
+#split-left-a-link:hover + #split-left-arrow {
+  display: block;
+}
+
+#split-right-a-link:hover + #split-right-arrow {
+  display: block;
+}
+
+#checkbox-a-link:hover + #checkbox-arrow {
+  display: block;
+}
+
+#scores-view-a-link:hover + #scores-view-arrow {
+  display: block;
+}
+
+#slide-a-link:hover + #slide-arrow {
+  display: block;
+}
+
 #map-controls-right {
   top: 0;
   right: 0;
@@ -163,11 +211,18 @@ body * {
 }
 
 .mapboxgl-compare {
+  z-index: 0;
+  position: absolute;
+}
+
+.compare-swiper-horizontal {
+  position: relative;
   z-index: 0
 }
 
 .mapboxgl-popup {
-  z-index: 2;
+  z-index: 10;
+  position: absolute;
 }
 
 .my-legend .legend-title {
@@ -214,6 +269,18 @@ body * {
   top: 320px;
   left: 90px;
 }
+
+/* .mapboxgl-popup-anchor-top .mapboxgl-popup-tip,
+.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip,
+.mapboxgl-popup-anchor-center .mapboxgl-popup-tip,
+.mapboxgl-popup-anchor-left .mapboxgl-popup-tip,
+.mapboxgl-popup-anchor-right .mapboxgl-popup-tip,
+.mapboxgl-popup-anchor-bottom-right .mapboxgl-popup-tip,
+.mapboxgl-popup-anchor-bottom-left .mapboxgl-popup-tip,
+.mapboxgl-popup-anchor-top-right .mapboxgl-popup-tip,
+.mapboxgl-popup-anchor-top-left .mapboxgl-popup-tip{
+    display:none !important;
+} */
 
 /* #chart1, #text {
   text-align: center;

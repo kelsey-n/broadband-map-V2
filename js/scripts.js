@@ -21,6 +21,15 @@ afterMap.addControl(new mapboxgl.NavigationControl({
   showCompass: false
 }));
 
+afterMap.addControl(new MapboxGeocoder({
+  accessToken: 'pk.eyJ1Ijoia25hbmFuIiwiYSI6ImNrbDlsMXNmNjI3MnEyb25yYjNremFwYXQifQ.l6loLOR-pOL_U2kzWBSQNQ',
+  mapboxgl: mapboxgl,
+  zoom: 13,
+  bbox: [-80.00125, 40.40703, -71.64066, 45.08304]
+  // origin: `https://usignite-intern.carto.com/api/v1/map?apikey=93ca9b2ca98129188e337d41aee1e0faad970acd`
+}), 'bottom-left'
+);
+
 // enable tooltips
 $(function () {
   $('[data-toggle="tooltip"]').tooltip()
@@ -35,6 +44,13 @@ document.getElementById('modal-checkbox').addEventListener('change', e => {
     $('#modal-dismiss').attr('disabled', 'disabled');
   }
 })
+
+// variables to hold the user's selection of variables to display:
+var first_var = 'Broadband Score';
+var second_var = 'Broadband Score';
+var firstarr = [];
+var secondarr = [];
+checkbox = document.getElementById('checkbox');
 
 // variables to hold and edit our color schemes
 var sequential_colors = ['#8A8AFF','#5C5CFF','#2E2EFF','#0000FF','#0000A3']; //blue TRY VARYING SATURATION
@@ -60,6 +76,56 @@ var displayVal_to_colName = {
   'FCC Upload Speed': 'avgwt_maxadup_fcc',
   'Broadband Score': 'dummy_score_for_testing'
 };
+
+// get window size and set distances for hidden arrows
+var windowWidth = window.innerWidth
+var windowHeight = window.innerHeight
+document.getElementById('address-box-arrow').style.top = `${windowHeight-145}px`
+document.getElementById('address-box-arrow').style.left = `130px`
+document.getElementById('census-tract-arrow').style.top = `${windowHeight/2 - 150}px`
+document.getElementById('census-tract-arrow').style.left = `${windowWidth/2 - 230}px`
+document.getElementById('split-left-arrow').style.top = `375px`
+document.getElementById('split-left-arrow').style.left = `140px`
+document.getElementById('split-right-arrow').style.top = `375px`
+document.getElementById('split-right-arrow').style.left = `${windowWidth - 375}px`
+document.getElementById('checkbox-arrow').style.top = `405px`
+document.getElementById('checkbox-arrow').style.left = `${windowWidth - 375}px`
+document.getElementById('scores-view-arrow').style.top = `405px`
+document.getElementById('scores-view-arrow').style.left = `170px`
+document.getElementById('slide-arrow').style.top = `${windowHeight/2 - 60}px`
+document.getElementById('slide-arrow').style.left = `${windowWidth/2 - 71}px`
+
+$('#slide-a-link').hover(function() {
+  map.setSlider(windowWidth/2);
+  beforeMap.setLayoutProperty('scores_layer', 'visibility','none');
+  afterMap.setLayoutProperty('scores_layer', 'visibility','none');
+  beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
+    'step',
+    ['get', 'avgwt_maxaddown_fcc'],
+    sequential_colors[0],
+    203.06, sequential_colors[1],
+    249.9, sequential_colors[2],
+    306.13, sequential_colors[3],
+    411.95, sequential_colors[4],
+  ]);
+  afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
+    'step',
+    ['get', 'avgwt_downloadspeed_ook'],
+    sequential_colors[0],
+    123.85, sequential_colors[1],
+    158.54, sequential_colors[2],
+    176.68, sequential_colors[3],
+    191.9, sequential_colors[4],
+  ]);
+  beforeMap.setLayoutProperty('first_selected_layer', 'visibility','visible');
+  afterMap.setLayoutProperty('second_selected_layer', 'visibility','visible');
+  }, function() {
+    map.setSlider(0)
+    beforeMap.setLayoutProperty('first_selected_layer', 'visibility','none');
+    afterMap.setLayoutProperty('second_selected_layer', 'visibility','none');
+    beforeMap.setLayoutProperty('scores_layer', 'visibility','visible');
+    afterMap.setLayoutProperty('scores_layer', 'visibility','visible');
+})
 
 // create reverse object of displayVal_to_colName
 var colName_to_displayVal = {};
@@ -133,31 +199,6 @@ afterMap.on('load', function() {
         });
       });
 });
-
-
-// Function to determine when the sidenav is open and what it is populated with
-function openNav() {
-  // Set the width of the side navigation to be viewable at 250px and move the sidenav buttons over 250px:
-  document.getElementById("sidenav-menu").style.width = "250px";
-  document.getElementById("sidenav-buttons").style.left = "250px";
-  // Depending on which sidenav button was clicked, populate the menu with the relevant text
-  $('.sidenav-button').click(function() {
-    $('.sidenav-button').removeClass('sidenav-button-active'); //remove styling from any previously selected button
-    var button_id = $(this).attr('id') //pull out the id name of the clicked sidenav button
-    var menu_text = $(`#${button_id}-text`).html(); //get the menu text and styling for the clicked button
-    $(".sidenav-menu-text").html(menu_text); //populate the sidenav menu with the appropriate html
-    // style the clicked button:
-    $(`#${button_id}`).addClass('sidenav-button-active');
-  });
-}
-
-// Function to close the side navigaion
-// Set the width of the side navigation to 0 and the left margin of the page content to 0
-function closeNav() {
-  document.getElementById("sidenav-menu").style.width = "0";
-  document.getElementById("sidenav-buttons").style.left = "0px";
-  $('.sidenav-button').removeClass('sidenav-button-active');
-}
 
 // Function to calculate percentiles of data
 function percentiles(arr) {
@@ -320,16 +361,29 @@ function createTable(tractValsObj, percentilesObj, clickedTract) {
   Plotly.newPlot('chart1', data, layout, config);
 };
 
-// variables to hold the user's selection of variables to display:
-var first_var = 'Broadband Score';
-var second_var = 'Broadband Score';
-var firstarr = [];
-var secondarr = [];
-checkbox = document.getElementById('checkbox');
-
 // this function will update the variable selections on the first dropdown menu for variable selection:
 $("#first-dropdown li a").click(function() {
   map.setSlider(window.innerWidth / 2);
+
+  // window['popup'] = new mapboxgl.Popup({
+  //   closeButton: false,
+  //   closeOnClick: false,
+  //   anchor: ""
+  // });
+
+  if (sliderPos - mousePos < 70) {
+    window['popup'] = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+      anchor: 'right'
+    });
+  } else if (sliderPos - mousePos > 50) {
+    window['popup'] = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: false
+    });
+  };
+
 
   document.getElementById("chart1").textContent = "";
   document.getElementsByClassName("my-legend")[0].style.visibility = 'hidden';
@@ -391,7 +445,7 @@ $("#first-dropdown li a").click(function() {
       intervals[3], sequential_colors[4],
     ]);
   };
-  
+
   if (first_var != 'Broadband Score' && second_var != 'Broadband Score') {
     $('#checkbox').removeAttr('disabled');
   } else {
@@ -740,10 +794,10 @@ async function addCartoLayer() {
           'step',
           ['get', displayVal_to_colName[first_var]],
           sequential_colors[0],
-          25, sequential_colors[1],
-          100, sequential_colors[2],
-          200, sequential_colors[3],
-          230, sequential_colors[4],
+          203.06, sequential_colors[1],
+          249.9, sequential_colors[2],
+          306.13, sequential_colors[3],
+          411.95, sequential_colors[4],
         ],
         'fill-opacity': 1
         // 'fill-outline-color': 'black'
@@ -766,12 +820,12 @@ async function addCartoLayer() {
       paint: {
         'fill-color': [
           'step',
-          ['get', second_var],
+          ['get', displayVal_to_colName[second_var]],
           sequential_colors[0],
-          25, sequential_colors[1],
-          100, sequential_colors[2],
-          200, sequential_colors[3],
-          230, sequential_colors[4],
+          123.85, sequential_colors[1],
+          158.54, sequential_colors[2],
+          176.68, sequential_colors[3],
+          191.9, sequential_colors[4],
         ],
         'fill-opacity': 1
         // 'fill-outline-color': 'black'
@@ -828,22 +882,47 @@ async function getTileSources() {
 // Create a popup, but don't add it to the map yet. This will be the hover popup
 var popup = new mapboxgl.Popup({
   closeButton: false,
-  closeOnClick: false
+  closeOnClick: false,
+  anchor: "",
+  offset: [20,0]
 });
 
+// create function to log x position of mouse. in aftermap: change popup anchor to left if MouseX-sliderPos between 0 and threshold
+// beforemap: change popup anchor to right if sliderPos-MouseX between 0 and threshold ELSE set anchor back to ""
+var mousePos = 0;
+var sliderPos = window.innerWidth / 2;
 
+map.on('slideend', (e) => {
+  sliderPos = e.currentPosition;
+});
 
-
-
+document.addEventListener('mousemove', function(e) {
+  mousePos = e.clientX
+});
 
 beforeMap.on('load', function() {
 
   // Function to query rendered features for the census tract the user is hovering over, highlight that tract, then populate popup with that tract's info
   beforeMap.on('mousemove', function(e) {
+
+    // if (sliderPos - mousePos < 50) {
+    //   popup = new mapboxgl.Popup({
+    //     closeButton: false,
+    //     closeOnClick: false,
+    //     anchor: 'right'
+    //   });
+    // } else if (sliderPos - mousePos > 50) {
+    //   popup = new mapboxgl.Popup({
+    //     closeButton: false,
+    //     closeOnClick: false
+    //   });
+    // };
+
     //query for the features under the mouse:
     var features = beforeMap.queryRenderedFeatures(e.point, {
         layers: ['scores_layer', 'first_selected_layer']
       });
+    console.log(features)
 
     // Check whether features exist
     if (features.length > 0) {
@@ -873,15 +952,7 @@ beforeMap.on('load', function() {
 
       //fix the position of the popup as the position of the circle:
       popup.setLngLat(e.lngLat).setHTML(popupContent).addTo(beforeMap);
-      //create and populate a feature with the properties of the hoveredFeature necessary for data-driven styling of the highlight layer
-      // var hoveredFeature_data = {
-      //   'type': 'Feature',
-      //   'geometry': hoveredFeature.geometry,
-      //   'properties': {
-      //     'avgwt_uploadspeed_ook': upload_sp,
-      //     'avgwt_downloadspeed_ook': download_sp
-      //   },
-      // };
+
       // set this circle's geometry and properties as the data for the highlight source
       beforeMap.getSource('highlight-tract-source-beforeMap').setData(hoveredFeature.geometry);
 
@@ -955,6 +1026,10 @@ afterMap.on('load', function() {
           'features': []
         })
       }
+
+            // TESTING
+            //console.log(e.clientX)
+
   });
 
   afterMap.on('click', 'scores_layer', function(e) {
@@ -998,7 +1073,6 @@ afterMap.on('load', function() {
         'features': []
       })
     }
-
 
   })
 })
