@@ -103,19 +103,19 @@ $('#slide-a-link').hover(function() {
     'step',
     ['get', 'avgwt_maxaddown_fcc'],
     sequential_colors[0],
-    203.06, sequential_colors[1],
-    249.9, sequential_colors[2],
-    306.13, sequential_colors[3],
-    411.95, sequential_colors[4],
+    152.78, sequential_colors[1],
+    182.66, sequential_colors[2],
+    209.54, sequential_colors[3],
+    306.13, sequential_colors[4],
   ]);
   afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
     'step',
     ['get', 'avgwt_downloadspeed_ook'],
     sequential_colors[0],
-    123.85, sequential_colors[1],
-    158.54, sequential_colors[2],
-    176.68, sequential_colors[3],
-    191.9, sequential_colors[4],
+    152.78, sequential_colors[1],
+    182.66, sequential_colors[2],
+    209.54, sequential_colors[3],
+    306.13, sequential_colors[4],
   ]);
   beforeMap.setLayoutProperty('first_selected_layer', 'visibility','visible');
   afterMap.setLayoutProperty('second_selected_layer', 'visibility','visible');
