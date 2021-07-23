@@ -54,79 +54,89 @@ checkbox = document.getElementById('checkbox');
 
 // variables to hold and edit our color schemes
 var sequential_colors = ['#8A8AFF','#5C5CFF','#2E2EFF','#0000FF','#0000A3']; //blue TRY VARYING SATURATION
-var diverging_colors = ['#ca0020','#f4a582','#f7f7f7','#92c5de','#0571b0']; //['#d7191c','#fdae61','#ffffbf','#abd9e9','#2c7bb6'] //['#d7191c','#fdae61','#ffffbf','#a6d96a','#1a9641'] //red --> green TRY CHANGING TO BLUE
+var diverging_colors = ['#ca0020','#f4a582','#ffffbf','#92c5de','#0571b0']; //['#d7191c','#fdae61','#ffffbf','#abd9e9','#2c7bb6'] //['#d7191c','#fdae61','#ffffbf','#a6d96a','#1a9641'] //red --> green TRY CHANGING TO BLUE
 var diverging_colors_transparent = ['#ca002080','#f4a58280','#f7f7f780','#92c5de80','#0571b080'];
 
 // 'display column name for frontend of visualization': 'column name in data '
 var displayVal_to_colName = {
-  'Wired 25 (BN)': 'wired25_3_2020_bn',
-  'Wired 100 (BN)': 'wired100_3_2020_bn',
+  //'Wired 25 (BN)': 'wired25_3_2020_bn',
+  //'Wired 100 (BN)': 'wired100_3_2020_bn',
   //'averagembps_bn': 'Average Speed (BN)',
   //'fastestaveragembps_bn': 'Fastest Average Speed (BN)',
   //'lowestpricedterrestrialbroadbandplan_bn': 'Lowest Priced Terrestrial Plan (BN)',
-  'Broadband Usage (MS)': 'broadbandusage_ms',
-  'M-Lab Throughput': 'avg_meanthroughputmbps_ml',
-  'Number of Speed Tests (ML)': 'speedtests_ml',
-  'Ookla Download Speed': 'avgwt_downloadspeed_ook',
-  'Ookla Upload Speed': 'avgwt_uploadspeed_ook',
-  'Number of Speed Tests (Ook)': 'speedtests_ook',
-  'Number of Internet Providers (FCC)': 'numproviders_fcc',
-  'Average Fraction Coverage (FCC)': 'avg_fractioncoverage_fcc',
-  'FCC Download Speed': 'avgwt_maxaddown_fcc',
-  'FCC Upload Speed': 'avgwt_maxadup_fcc',
-  'Broadband Score': 'dummy_score_for_testing'
+  '%Pop with 25Mbps/3 Mbps Speed': 'broadband_usage',
+  'M-Lab Speed': 'avg_meanthroughputmbps',
+  'Ookla Download Speed': 'avg_d_mbps_wt',
+  'Ookla Upload Speed': 'avg_u_mbps_wt',
+  'Number of Internet Providers': 'num_providers', //FIX!!!
+  'FCC Download Speed': 'wt_avg_maxaddown',
+  'FCC Upload Speed': 'wt_avg_maxadup',
+  'Broadband Score': 'broadband_score',
+  'Population': 'estimate_sex_and_age_total_population',
+  'Average Household Size': 'estimate_households_by_type_total_households_average_househo',
+  'Median Household Income': 'estimate_income_and_benefits_in_2019_inflation_adjusted_dolla',
+  '%Households with Broadband Subscription': '_househoulds_with_broadband_subscription',
+  '%Pop with Health Insurance': '_pop_with_health_ins',
+  '%Pop 25+ with High School Degree': '_pop_with_high_school_degree_over_25',
+  '%Pop 16+ Employed': '_pop_employed_over_16_yrs'
 };
 
-// get window size and set distances for hidden arrows
+// get window size to set distances for hidden arrows
 var windowWidth = window.innerWidth
 var windowHeight = window.innerHeight
-document.getElementById('address-box-arrow').style.top = `${windowHeight-145}px`
-document.getElementById('address-box-arrow').style.left = `130px`
-document.getElementById('census-tract-arrow').style.top = `${windowHeight/2 - 150}px`
-document.getElementById('census-tract-arrow').style.left = `${windowWidth/2 - 230}px`
-document.getElementById('split-left-arrow').style.top = `375px`
-document.getElementById('split-left-arrow').style.left = `140px`
-document.getElementById('split-right-arrow').style.top = `375px`
-document.getElementById('split-right-arrow').style.left = `${windowWidth - 375}px`
-document.getElementById('checkbox-arrow').style.top = `405px`
-document.getElementById('checkbox-arrow').style.left = `${windowWidth - 375}px`
-document.getElementById('scores-view-arrow').style.top = `405px`
-document.getElementById('scores-view-arrow').style.left = `170px`
-document.getElementById('slide-arrow').style.top = `${windowHeight/2 - 60}px`
-document.getElementById('slide-arrow').style.left = `${windowWidth/2 - 71}px`
 
-// function to show glimpse of comparison map when user hovers on relevant words in instructions
-$('#slide-a-link').hover(function() {
-  map.setSlider(windowWidth/2);
-  beforeMap.setLayoutProperty('scores_layer', 'visibility','none');
-  afterMap.setLayoutProperty('scores_layer', 'visibility','none');
-  beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
-    'step',
-    ['get', 'avgwt_maxaddown_fcc'],
-    sequential_colors[0],
-    152.78, sequential_colors[1],
-    182.66, sequential_colors[2],
-    209.54, sequential_colors[3],
-    306.13, sequential_colors[4],
-  ]);
-  afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
-    'step',
-    ['get', 'avgwt_downloadspeed_ook'],
-    sequential_colors[0],
-    152.78, sequential_colors[1],
-    182.66, sequential_colors[2],
-    209.54, sequential_colors[3],
-    306.13, sequential_colors[4],
-  ]);
-  beforeMap.setLayoutProperty('first_selected_layer', 'visibility','visible');
-  afterMap.setLayoutProperty('second_selected_layer', 'visibility','visible');
-  }, function() {
-    map.setSlider(0)
-    beforeMap.setLayoutProperty('first_selected_layer', 'visibility','none');
-    afterMap.setLayoutProperty('second_selected_layer', 'visibility','none');
-    beforeMap.setLayoutProperty('scores_layer', 'visibility','visible');
-    afterMap.setLayoutProperty('scores_layer', 'visibility','visible');
-})
+// function to set the positions for hidden instruction arrows based on window size
+function hoverForInstructions() {
+  document.getElementById('address-box-arrow').style.top = `${windowHeight-145}px`
+  document.getElementById('address-box-arrow').style.left = `130px`
+  document.getElementById('census-tract-arrow').style.top = `${windowHeight/2 - 150}px`
+  document.getElementById('census-tract-arrow').style.left = `${windowWidth/2 - 230}px`
+  document.getElementById('split-left-arrow').style.top = `375px`
+  document.getElementById('split-left-arrow').style.left = `140px`
+  document.getElementById('split-right-arrow').style.top = `375px`
+  document.getElementById('split-right-arrow').style.left = `${windowWidth - 375}px`
+  document.getElementById('checkbox-arrow').style.top = `405px`
+  document.getElementById('checkbox-arrow').style.left = `${windowWidth - 375}px`
+  document.getElementById('scores-view-arrow').style.top = `405px`
+  document.getElementById('scores-view-arrow').style.left = `170px`
+  document.getElementById('slide-arrow').style.top = `${windowHeight/2 - 60}px`
+  document.getElementById('slide-arrow').style.left = `${windowWidth/2 - 71}px`
+
+  // function to show glimpse of comparison map when user hovers on relevant words in instructions
+  $('#slide-a-link').hover(function() {
+    map.setSlider(windowWidth/2);
+    beforeMap.setLayoutProperty('scores_layer', 'visibility','none');
+    afterMap.setLayoutProperty('scores_layer', 'visibility','none');
+    beforeMap.setPaintProperty('first_selected_layer', 'fill-color', [
+      'step',
+      ['get', 'wt_avg_maxaddown'],
+      sequential_colors[0],
+      152.78, sequential_colors[1],
+      182.66, sequential_colors[2],
+      209.54, sequential_colors[3],
+      306.13, sequential_colors[4],
+    ]);
+    afterMap.setPaintProperty('second_selected_layer', 'fill-color', [
+      'step',
+      ['get', 'avg_d_mbps_wt'],
+      sequential_colors[0],
+      152.78, sequential_colors[1],
+      182.66, sequential_colors[2],
+      209.54, sequential_colors[3],
+      306.13, sequential_colors[4],
+    ]);
+    beforeMap.setLayoutProperty('first_selected_layer', 'visibility','visible');
+    afterMap.setLayoutProperty('second_selected_layer', 'visibility','visible');
+    }, function() {
+      map.setSlider(0)
+      beforeMap.setLayoutProperty('first_selected_layer', 'visibility','none');
+      afterMap.setLayoutProperty('second_selected_layer', 'visibility','none');
+      beforeMap.setLayoutProperty('scores_layer', 'visibility','visible');
+      afterMap.setLayoutProperty('scores_layer', 'visibility','visible');
+  })
+};
+
+hoverForInstructions(); //call function
 
 // create reverse object of displayVal_to_colName
 var colName_to_displayVal = {};
@@ -136,16 +146,27 @@ for (key in displayVal_to_colName)
 // ADD initial_SQL_qry TO INITIAL SQL CALL TO DATABASE- not working, but using for getting values
 // define the columns we will need for various steps (mapping, clicking on census tracts)
 var sql = new cartodb.SQL({ user: 'usignite-intern' });
-var sql_fromStatement = ' FROM masterdataset_speedtestdata_dummyscores'
+var sql_fromStatement = ' FROM dataset_for_vis_final'
 var colsToMap = [
-  'dummy_score_for_testing', 'avgwt_maxaddown_fcc', 'avgwt_maxadup_fcc', 'avgwt_downloadspeed_ook',
-  'avgwt_uploadspeed_ook', 'avg_meanthroughputmbps_ml'
+  'broadband_score', 'avg_meanthroughputmbps', 'avg_d_mbps_wt',
+  'avg_u_mbps_wt', 'wt_avg_maxaddown', 'wt_avg_maxadup'
 ];
 var initial_SQL_qry = 'SELECT '+colsToMap.join()+sql_fromStatement
 var colsForTractClick = [
-  'wired25_3_2020_bn', 'wired100_3_2020_bn','avg_meanthroughputmbps_ml',
-  'avgwt_downloadspeed_ook','avgwt_uploadspeed_ook',
-  'avgwt_maxaddown_fcc', 'avgwt_maxadup_fcc', 'dummy_score_for_testing'
+  'avg_meanthroughputmbps', 'avg_d_mbps_wt', 'avg_u_mbps_wt',
+  'wt_avg_maxaddown', 'wt_avg_maxadup', 'broadband_usage', 'num_providers', 'broadband_score',
+  'estimate_sex_and_age_total_population', 'estimate_households_by_type_total_households_average_househo',
+  'estimate_income_and_benefits_in_2019_inflation_adjusted_dolla', '_househoulds_with_broadband_subscription',
+  '_pop_with_health_ins', '_pop_with_high_school_degree_over_25', '_pop_employed_over_16_yrs'
+]
+var broadbandColsForTractClick = [
+  'avg_meanthroughputmbps', 'avg_d_mbps_wt', 'avg_u_mbps_wt', 'wt_avg_maxaddown', 'wt_avg_maxadup',
+  'broadband_usage', 'num_providers', '_househoulds_with_broadband_subscription', 'broadband_score'
+]
+var demogColsForTractClick = [
+  'estimate_sex_and_age_total_population', 'estimate_households_by_type_total_households_average_househo',
+  'estimate_income_and_benefits_in_2019_inflation_adjusted_dolla',
+  '_pop_with_health_ins', '_pop_with_high_school_degree_over_25', '_pop_employed_over_16_yrs'
 ]
 var temp_SQL_qry = 'SELECT '+colsForTractClick.join()+sql_fromStatement
 
@@ -310,7 +331,7 @@ function createPlot(arr, percentiles, chartid) {
 };
 
 // Function to draw table of broadband variables for clicked census tract
-function createTable(tractValsObj, percentilesObj, clickedTract) {
+function createTable(tractValsObj, percentilesObj, clickedTract, clickedCounty, chartid) {
   colorMap = {};
   for (const [key, value] of Object.entries(tractValsObj)) {
     colorMap[key] = getIndexToIns(percentilesObj[`percs_${key}`], value)
@@ -324,7 +345,7 @@ function createTable(tractValsObj, percentilesObj, clickedTract) {
   var data = [{
     type: 'table',
     header: {
-      values: [`<b>Tract ${clickedTract}<br>County ________</b>`],
+      values: [`<b>Tract ${clickedTract}<br>${clickedCounty} County</b>`],
       align: "center",
       line: {width: 1, color: 'white'},
       fill: {color: "white"},
@@ -354,7 +375,7 @@ function createTable(tractValsObj, percentilesObj, clickedTract) {
     'displayModeBar': false // hide plotly toolbar.
   };
 
-  Plotly.newPlot('chart1', data, layout, config);
+  Plotly.newPlot(chartid, data, layout, config);
 };
 
 // this function will update the variable selections on the first dropdown menu for variable selection:
@@ -383,7 +404,6 @@ $("#first-dropdown li a").click(function() {
 
   document.getElementById("chart1").textContent = "";
   document.getElementsByClassName("my-legend")[0].style.visibility = 'hidden';
-  document.getElementById("broadband-legend").style.visibility = 'hidden';
 
   first_var = $(this).text();
   first_check = true;
@@ -459,6 +479,7 @@ $("#second-dropdown li a").click(function() {
 
   document.getElementById("chart2").textContent = "";
   document.getElementsByClassName("my-legend")[0].style.visibility = 'hidden';
+  document.getElementById("broadband-legend").style.visibility = 'hidden';
 
   second_var = $(this).text() //$(this).data('value') - this is a string AND it is updating the global first_var variable BUT still throwing error when we show the layer... `'${$(this).data('value')}'`
   $(this).parents(".dropdown").find('.btn').html($(this).text() + ' <span class="caret"></span>');
@@ -593,11 +614,53 @@ $("#reset-button").click(function() {
 
   // reset instructions text on left map controls
   document.getElementById("left-controls-title").innerHTML = `About this map`;
-  document.getElementById("chart1").innerHTML = `Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-    sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-    nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
-    reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-    cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`;
+  document.getElementById("chart1").innerHTML = `
+  There is no one source of truth for broadband quality. This map compares measures of broadband coverage
+  from various sources and shows an average broadband speed score by New York census tract.<br>
+  <b>Scores View:</b> Use the
+  <a id="address-box-a-link">address lookup</a>
+  <div class="arrow" id="address-box-arrow">
+    <i style='font-size: 100px' class="fas fa-long-arrow-alt-down"></i>
+  </div>
+  to find an address of interest. Click any
+  <a id="census-tract-a-link">census tract</a>
+  <div class="arrow" id="census-tract-arrow">
+    <i style='font-size: 100px' class="fas fa-long-arrow-alt-down"></i>
+  </div>
+  to view its broadband and demographic data.
+  <br><b>Comparison View:</b> The FCC collects data from ISPs (Internet Service Providers)
+  on the broadband speeds they provide. However these speeds don't always line up with speeds experienced
+  by consumers. Display
+  <a id="split-left-a-link">ISP-reported broadband speeds on the left</a>
+  <div class="arrow" id="split-left-arrow">
+    <i style='font-size: 80px' class="fas fa-long-arrow-alt-left"></i>
+  </div>
+  of the map and corresponding
+  <a id="split-right-a-link">measured speeds on the right</a>
+  <div class="arrow" id="split-right-arrow">
+    <i style='font-size: 80px' class="fas fa-long-arrow-alt-right"></i>
+  </div>
+  , then
+  <a id="slide-a-link">slide to compare</a>
+  <div class="arrow" id="slide-arrow">
+    <i style='font-size: 80px' class="fas fa-long-arrow-alt-left"></i>
+    <i style='font-size: 80px' class="fas fa-long-arrow-alt-right"></i>
+  </div>
+  these speeds across the state. Use
+   <a id="checkbox-a-link">this checkbox</a>
+   <div class="arrow" id="checkbox-arrow">
+     <i style='font-size: 80px' class="fas fa-long-arrow-alt-right"></i>
+   </div>
+   to apply the same values to colors on both sides of the map.
+   <a id="scores-view-a-link">Return to the scores view</a>
+   <div class="arrow" id="scores-view-arrow">
+     <i style='font-size: 80px' class="fas fa-long-arrow-alt-left"></i>
+   </div>
+  at any time.
+`;
+
+  // call the function that sets hidden arrow positions after we re-draw them on resetting HTML of the left menu 
+  hoverForInstructions();
 
   // reset broadband score description on right map controls
   document.getElementById("right-controls-title").innerHTML = `Broadband Score`;
@@ -701,9 +764,6 @@ afterMap.on('load', function() {
       }
   });
 
-  // plot scores on right map controls:
-  // var initial_intervals = percentiles(featuresObj['dummy_score_for_testing']);
-  // createInitialPlot(featuresObj['dummy_score_for_testing'], initial_intervals);
 })
 
 const REQUEST_GET_MAX_URL_LENGTH = 2048;
@@ -729,7 +789,7 @@ async function addCartoLayer() {
       paint: {
         'fill-color': [
           'step',
-          ['get', 'dummy_score_for_testing'],
+          ['get', 'broadband_score'],
           diverging_colors[0],
           2, diverging_colors[1],
           3, diverging_colors[2],
@@ -756,7 +816,7 @@ async function addCartoLayer() {
       paint: {
         'fill-color': [
           'step',
-          ['get', 'dummy_score_for_testing'],
+          ['get', 'broadband_score'],
           diverging_colors[0],
           2, diverging_colors[1],
           3, diverging_colors[2],
@@ -836,7 +896,7 @@ async function getTileSources() {
       {
         type: 'mapnik',
         options: {
-          sql: 'SELECT the_geom_webmercator, censustract, dummy_score_for_testing, avgwt_maxaddown_fcc, avgwt_maxadup_fcc, avgwt_downloadspeed_ook, avgwt_uploadspeed_ook, avg_meanthroughputmbps_ml FROM masterdataset_speedtestdata_dummyscores',
+          sql: 'SELECT the_geom_webmercator, tract, county, avg_meanthroughputmbps, avg_d_mbps_wt, avg_u_mbps_wt, wt_avg_maxaddown, wt_avg_maxadup, broadband_score FROM dataset_for_vis_final',
           vector_extent: 4096,
           bufferSize: 1,
           version: '1.3.1'
@@ -921,21 +981,21 @@ beforeMap.on('load', function() {
 
       var hoveredFeature = features[0];
       //Extract necessary variables:
-      var tract_id = hoveredFeature.properties.censustract;
-      // var county_name = INCLUDE COUNTY NAME HERE
+      var tract_id = hoveredFeature.properties.tract;
+      var county_name = hoveredFeature.properties.county
       var first_var_value = hoveredFeature.properties[`${displayVal_to_colName[first_var]}`];
       var second_var_value = hoveredFeature.properties[`${displayVal_to_colName[second_var]}`];
 
       if (first_var === second_var) {
         window['popupContent'] = `
           <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">Census Tract ${tract_id}</div>
-          <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">County</div>
+          <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">${county_name} County</div>
           <div style = "font-family:sans-serif; font-size:11px; font-weight:600">${first_var}: ${first_var_value}</div>
         `;
       } else {
         window['popupContent'] = `
           <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">Census Tract ${tract_id}</div>
-          <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">County</div>
+          <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">${county_name} County</div>
           <div style = "font-family:sans-serif; font-size:11px; font-weight:600">${first_var}: ${first_var_value}</div>
           <div style = "font-family:sans-serif; font-size:11px; font-weight:600">${second_var}: ${second_var_value}</div>
         `;
@@ -974,21 +1034,21 @@ afterMap.on('load', function() {
 
       var hoveredFeature = features[0];
       //Extract necessary variables:
-      var tract_id = hoveredFeature.properties.censustract;
-      // var county_name = INCLUDE COUNTY NAME HERE
+      var tract_id = hoveredFeature.properties.tract;
+      var county_name = hoveredFeature.properties.county;
       var first_var_value = hoveredFeature.properties[`${displayVal_to_colName[first_var]}`];
       var second_var_value = hoveredFeature.properties[`${displayVal_to_colName[second_var]}`];
 
       if (first_var === second_var) {
         window['popupContent'] = `
           <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">Census Tract ${tract_id}</div>
-          <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">County</div>
+          <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">${county_name} County</div>
           <div style = "font-family:sans-serif; font-size:11px; font-weight:600">${first_var}: ${first_var_value}</div>
         `;
       } else {
         window['popupContent'] = `
           <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">Census Tract ${tract_id}</div>
-          <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">County</div>
+          <div style = "font-family:sans-serif; font-size:14px; font-weight:bold">${county_name} County</div>
           <div style = "font-family:sans-serif; font-size:11px; font-weight:600">${first_var}: ${first_var_value}</div>
           <div style = "font-family:sans-serif; font-size:11px; font-weight:600">${second_var}: ${second_var_value}</div>
         `;
@@ -1038,19 +1098,30 @@ afterMap.on('load', function() {
         layers: ['scores_layer'],
     });
     var clickedFeature = features[0]
-    var clickedTract = clickedFeature.properties.censustract
+    var clickedTract = clickedFeature.properties.tract
+    var clickedCounty = clickedFeature.properties.county
 
     // Check whether features exist
     if (features.length > 0) {
       // sql query to get data for clicked tract
-      var tractClick_SQL_qry = 'SELECT '+colsForTractClick.join()+sql_fromStatement+' WHERE censustract = '+clickedTract
-      sql.execute(`${tractClick_SQL_qry}`)
+      var tractClick_SQL_qry_broadband = 'SELECT '+broadbandColsForTractClick.join()+sql_fromStatement+' WHERE tract = '+clickedTract
+      var tractClick_SQL_qry_demog = 'SELECT '+demogColsForTractClick.join()+sql_fromStatement+' WHERE tract = '+clickedTract
+      sql.execute(`${tractClick_SQL_qry_broadband}`)
          .done(function(data) {
-          window['tractValues'] = data.rows[0];
-          console.log(tractValues);
-          // create table with plotly HERE using tractValues and percentilesObject as input
-          createTable(tractValues, percentiles_tractClick, clickedTract);
+          window['broadbandTractValues'] = data.rows[0];
+          console.log(broadbandTractValues);
+          // create table with plotly HERE using broadbandTractValues and percentilesObject as input
+          createTable(broadbandTractValues, percentiles_tractClick, clickedTract, clickedCounty, 'chart1');
         });
+
+      sql.execute(`${tractClick_SQL_qry_demog}`)
+         .done(function(data) {
+          window['demogTractValues'] = data.rows[0];
+          console.log(demogTractValues);
+          // create table with plotly HERE using broadbandTractValues and percentilesObject as input
+          createTable(demogTractValues, percentiles_tractClick, clickedTract, clickedCounty, 'chart2');
+        });
+
 
       var clickedFeature_highlightData = {
         'type': 'Feature',
