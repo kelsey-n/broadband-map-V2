@@ -55,15 +55,10 @@ checkbox = document.getElementById('checkbox');
 // variables to hold and edit our color schemes
 var sequential_colors = ['#8A8AFF','#5C5CFF','#2E2EFF','#0000FF','#0000A3']; //blue TRY VARYING SATURATION
 var diverging_colors = ['#ca0020','#f4a582','#ffffbf','#92c5de','#0571b0']; //['#d7191c','#fdae61','#ffffbf','#abd9e9','#2c7bb6'] //['#d7191c','#fdae61','#ffffbf','#a6d96a','#1a9641'] //red --> green TRY CHANGING TO BLUE
-var diverging_colors_transparent = ['#ca002080','#f4a58280','#f7f7f780','#92c5de80','#0571b080'];
+var diverging_colors_transparent = ['#ca002080','#f4a58280','#ffffbf80','#92c5de80','#0571b080'];
 
 // 'display column name for frontend of visualization': 'column name in data '
 var displayVal_to_colName = {
-  //'Wired 25 (BN)': 'wired25_3_2020_bn',
-  //'Wired 100 (BN)': 'wired100_3_2020_bn',
-  //'averagembps_bn': 'Average Speed (BN)',
-  //'fastestaveragembps_bn': 'Fastest Average Speed (BN)',
-  //'lowestpricedterrestrialbroadbandplan_bn': 'Lowest Priced Terrestrial Plan (BN)',
   '%Pop with 25Mbps/3 Mbps Speed': 'broadband_usage',
   'M-Lab Speed': 'avg_meanthroughputmbps',
   'Ookla Download Speed': 'avg_d_mbps_wt',
@@ -659,7 +654,7 @@ $("#reset-button").click(function() {
   at any time.
 `;
 
-  // call the function that sets hidden arrow positions after we re-draw them on resetting HTML of the left menu 
+  // call the function that sets hidden arrow positions after we re-draw them on resetting HTML of the left menu
   hoverForInstructions();
 
   // reset broadband score description on right map controls
@@ -1090,8 +1085,18 @@ afterMap.on('load', function() {
     document.getElementById("chart1").textContent = "";
     document.getElementById("chart2").textContent = "";
     document.getElementById("left-controls-title").textContent = "Broadband Data";
-    document.getElementById("right-controls-title").textContent = "Demographic Data";
+    document.getElementById("right-controls-title").innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16" data-toggle="tooltip" data-placement="top" data-html="true" title="Values of -9999 indicate missing data">
+      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+      <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+      </svg>
+      Demographic Data`;
     document.getElementById("broadband-legend").style.visibility = 'visible';
+
+    // enable tooltips
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    })
 
     // get the clicked tract number by querying the rendered features
     var features = afterMap.queryRenderedFeatures(e.point, {
