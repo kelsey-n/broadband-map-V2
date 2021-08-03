@@ -21,14 +21,14 @@ afterMap.addControl(new mapboxgl.NavigationControl({
   showCompass: false
 }));
 
-afterMap.addControl(new MapboxGeocoder({
-  accessToken: 'pk.eyJ1Ijoia25hbmFuIiwiYSI6ImNrbDlsMXNmNjI3MnEyb25yYjNremFwYXQifQ.l6loLOR-pOL_U2kzWBSQNQ',
-  mapboxgl: mapboxgl,
-  zoom: 13,
-  bbox: [-80.00125, 40.40703, -71.64066, 45.08304]
-  // origin: `https://usignite-intern.carto.com/api/v1/map?apikey=93ca9b2ca98129188e337d41aee1e0faad970acd`
-}), 'bottom-left'
-);
+// afterMap.addControl(new MapboxGeocoder({
+//   accessToken: 'pk.eyJ1Ijoia25hbmFuIiwiYSI6ImNrbDlsMXNmNjI3MnEyb25yYjNremFwYXQifQ.l6loLOR-pOL_U2kzWBSQNQ',
+//   mapboxgl: mapboxgl,
+//   zoom: 13,
+//   bbox: [-80.00125, 40.40703, -71.64066, 45.08304]
+//   // origin: `https://usignite-intern.carto.com/api/v1/map?apikey=93ca9b2ca98129188e337d41aee1e0faad970acd`
+// }), 'bottom-left'
+// );
 
 // enable tooltips
 $(function () {
@@ -82,8 +82,8 @@ var windowHeight = window.innerHeight
 
 // function to set the positions for hidden instruction arrows based on window size
 function hoverForInstructions() {
-  document.getElementById('address-box-arrow').style.top = `${windowHeight-145}px`
-  document.getElementById('address-box-arrow').style.left = `130px`
+  // document.getElementById('address-box-arrow').style.top = `${windowHeight-145}px`
+  // document.getElementById('address-box-arrow').style.left = `130px`
   document.getElementById('census-tract-arrow').style.top = `${windowHeight/2 - 150}px`
   document.getElementById('census-tract-arrow').style.left = `${windowWidth/2 - 230}px`
   document.getElementById('split-left-arrow').style.top = `375px`
@@ -164,58 +164,6 @@ var demogColsForTractClick = [
   '_pop_with_health_ins', '_pop_with_high_school_degree_over_25', '_pop_employed_over_16_yrs'
 ]
 var temp_SQL_qry = 'SELECT '+colsForTractClick.join()+sql_fromStatement
-
-// Use these perc values for the variables we want to show on census tract click to style table of clicked census tract.
-
-var tempObj = {};
-var percentiles_tractClick = {};
-$.each(colsForTractClick, function(i, colName) {
-  tempObj[`${colName}`] = []
-});
-
-// After map loads, get properties for this temporary object from which we will get percentiles
-afterMap.on('load', function() {
-  sql.execute(`${temp_SQL_qry}`)
-      .done(function(data) {
-        var rawdata = data.rows;
-        rawdata.forEach((el) => {
-          for (const [key, value] of Object.entries(tempObj)) {
-            tempObj[`${key}`].push(el[`${key}`])
-          };
-        });
-        for (const [key, value] of Object.entries(tempObj)) {
-          percentiles_tractClick[`percs_${key}`] = percentiles(value)
-        };
-        tempObj = {}; // reset tempObj since we don't need to keep it saved
-        console.log(percentiles_tractClick)
-      });
-});
-
-// Populate the variable selection dropdowns on the frontend:
-// $.each(displayVal_to_colName, function(key, value) {
-//   $('.dropdown-menu').append(`
-//     <li><a class="dropdown-item" data-value=${value} href="#">${key}</a></li>
-//     `)
-// })
-
-// Obj var to hold arrays of all property values
-var featuresObj = {};
-$.each(colsToMap, function(i, colName) {
-  featuresObj[`${colName}`] = []
-});
-
-// After map loads, get properties for drawing charts & calculating percentiles
-afterMap.on('load', function() {
-  sql.execute(`${initial_SQL_qry}`)
-      .done(function(data) {
-        var rawdata = data.rows;
-        rawdata.forEach((el) => {
-          for (const [key, value] of Object.entries(featuresObj)) {
-            featuresObj[`${key}`].push(el[`${key}`])
-          };
-        });
-      });
-});
 
 // Function to calculate percentiles of data
 function percentiles(arr) {
@@ -373,29 +321,15 @@ function createTable(tractValsObj, percentilesObj, clickedTract, clickedCounty, 
   Plotly.newPlot(chartid, data, layout, config);
 };
 
+var tempObj = {};
+var percentiles_tractClick = {};
+$.each(colsForTractClick, function(i, colName) {
+  tempObj[`${colName}`] = []
+});
+
 // this function will update the variable selections on the first dropdown menu for variable selection:
 $("#first-dropdown li a").click(function() {
   map.setSlider(window.innerWidth / 2);
-
-  // window['popup'] = new mapboxgl.Popup({
-  //   closeButton: false,
-  //   closeOnClick: false,
-  //   anchor: ""
-  // });
-
-  if (sliderPos - mousePos < 70) {
-    window['popup'] = new mapboxgl.Popup({
-      closeButton: false,
-      closeOnClick: false,
-      anchor: 'right'
-    });
-  } else if (sliderPos - mousePos > 50) {
-    window['popup'] = new mapboxgl.Popup({
-      closeButton: false,
-      closeOnClick: false
-    });
-  };
-
 
   document.getElementById("chart1").textContent = "";
   document.getElementsByClassName("my-legend")[0].style.visibility = 'hidden';
@@ -612,12 +546,9 @@ $("#reset-button").click(function() {
   document.getElementById("chart1").innerHTML = `
   There is no one source of truth for broadband quality. This map compares measures of broadband coverage
   from various sources and shows an average broadband speed score by New York census tract.<br>
-  <b>Scores View:</b> Use the
-  <a id="address-box-a-link">address lookup</a>
-  <div class="arrow" id="address-box-arrow">
-    <i style='font-size: 100px' class="fas fa-long-arrow-alt-down"></i>
-  </div>
-  to find an address of interest. Click any
+  <br>
+  <b>Scores View:</b>
+  Click any
   <a id="census-tract-a-link">census tract</a>
   <div class="arrow" id="census-tract-arrow">
     <i style='font-size: 100px' class="fas fa-long-arrow-alt-down"></i>
@@ -682,7 +613,52 @@ $("#reset-button").click(function() {
 
 });
 
-beforeMap.on('style.load', function() {
+// After map loads, get properties for this temporary object from which we will get percentiles
+afterMap.on('load', function() {
+  sql.execute(`${temp_SQL_qry}`)
+      .done(function(data) {
+        var rawdata = data.rows;
+        rawdata.forEach((el) => {
+          for (const [key, value] of Object.entries(tempObj)) {
+            tempObj[`${key}`].push(el[`${key}`])
+          };
+        });
+        for (const [key, value] of Object.entries(tempObj)) {
+          percentiles_tractClick[`percs_${key}`] = percentiles(value)
+        };
+        tempObj = {}; // reset tempObj since we don't need to keep it saved
+        console.log(percentiles_tractClick)
+      });
+});
+
+// Populate the variable selection dropdowns on the frontend:
+// $.each(displayVal_to_colName, function(key, value) {
+//   $('.dropdown-menu').append(`
+//     <li><a class="dropdown-item" data-value=${value} href="#">${key}</a></li>
+//     `)
+// })
+
+// Obj var to hold arrays of all property values
+var featuresObj = {};
+$.each(colsToMap, function(i, colName) {
+  featuresObj[`${colName}`] = []
+});
+
+// After map loads, get properties for drawing charts & calculating percentiles
+afterMap.on('load', function() {
+  sql.execute(`${initial_SQL_qry}`)
+      .done(function(data) {
+        var rawdata = data.rows;
+        rawdata.forEach((el) => {
+          for (const [key, value] of Object.entries(featuresObj)) {
+            featuresObj[`${key}`].push(el[`${key}`])
+          };
+        });
+      });
+});
+
+
+afterMap.on('load', function() {
   $('#exampleModalCenter').modal('show') // show modal when style loads
 });
 
@@ -891,7 +867,7 @@ async function getTileSources() {
       {
         type: 'mapnik',
         options: {
-          sql: 'SELECT the_geom_webmercator, tract, county, avg_meanthroughputmbps, avg_d_mbps_wt, avg_u_mbps_wt, wt_avg_maxaddown, wt_avg_maxadup, broadband_score FROM dataset_for_vis_final',
+          sql: 'SELECT the_geom_webmercator, tract, county, avg_d_mbps_wt, avg_u_mbps_wt, wt_avg_maxaddown, wt_avg_maxadup, broadband_score FROM dataset_for_vis_final',
           vector_extent: 4096,
           bufferSize: 1,
           version: '1.3.1'
@@ -933,36 +909,10 @@ var popup = new mapboxgl.Popup({
   anchor: ""
 });
 
-// create function to log x position of mouse. in aftermap: change popup anchor to left if MouseX-sliderPos between 0 and threshold
-// beforemap: change popup anchor to right if sliderPos-MouseX between 0 and threshold ELSE set anchor back to ""
-var mousePos = 0;
-var sliderPos = window.innerWidth / 2;
-
-map.on('slideend', (e) => {
-  sliderPos = e.currentPosition;
-});
-
-document.addEventListener('mousemove', function(e) {
-  mousePos = e.clientX
-});
-
 beforeMap.on('load', function() {
 
   // Function to query rendered features for the census tract the user is hovering over, highlight that tract, then populate popup with that tract's info
   beforeMap.on('mousemove', function(e) {
-
-    // if (sliderPos - mousePos < 50) {
-    //   popup = new mapboxgl.Popup({
-    //     closeButton: false,
-    //     closeOnClick: false,
-    //     anchor: 'right'
-    //   });
-    // } else if (sliderPos - mousePos > 50) {
-    //   popup = new mapboxgl.Popup({
-    //     closeButton: false,
-    //     closeOnClick: false
-    //   });
-    // };
 
     //query for the features under the mouse:
     var features = beforeMap.queryRenderedFeatures(e.point, {
@@ -1052,14 +1002,6 @@ afterMap.on('load', function() {
       //fix the position of the popup as the position of the circle:
       popup.setLngLat(e.lngLat).setHTML(popupContent).addTo(afterMap);
       //create and populate a feature with the properties of the hoveredFeature necessary for data-driven styling of the highlight layer
-      // var hoveredFeature_data = {
-      //   'type': 'Feature',
-      //   'geometry': hoveredFeature.geometry,
-      //   'properties': {
-      //     'avgwt_uploadspeed_ook': upload_sp,
-      //     'avgwt_downloadspeed_ook': download_sp
-      //   },
-      // };
       // set this circle's geometry and properties as the data for the highlight source
       afterMap.getSource('highlight-tract-source-afterMap').setData(hoveredFeature.geometry);
 
@@ -1073,15 +1015,10 @@ afterMap.on('load', function() {
         })
       }
 
-            // TESTING
-            //console.log(e.clientX)
-
   });
 
   afterMap.on('click', 'scores_layer', function(e) {
 
-    //document.getElementById("chart1").innerHTML = `<p style="text-align: center; padding: 0; margin: 0">Broadband Data</p>`;
-    //document.getElementById("chart1").innerHTML = `Broadband Data`;
     document.getElementById("chart1").textContent = "";
     document.getElementById("chart2").textContent = "";
     document.getElementById("left-controls-title").textContent = "Broadband Data";
