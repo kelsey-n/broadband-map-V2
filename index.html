@@ -172,7 +172,6 @@
                 Split map left
               </button>
               <div class="dropdown-menu" id="first-dropdown" aria-labelledby="dropdownMenuButton">
-                <!-- menu will be populated with JQuery -->
                 <li><a class="dropdown-item" href="#">FCC Download Speed</a></li>
                 <li><a class="dropdown-item" href="#">FCC Upload Speed</a></li>
               </div>
@@ -187,22 +186,21 @@
           <div class='map-controls-content'>
             <h4 id='right-controls-title'>Broadband Score</h4>
             <div class="chart" id='chart2'>
-              <!-- to be populated when user selects second var -->
-              <em>TO FILL IN:<br>How and why broadband score was calculated. How it can be used. Include links to relevant  docs saved
-              on Google Drive (user data dictionary describing broadband data fields and sources and ACS fields used).
-              Include links to project website & github containing code used to aggregate data and calculate scores.</em>
+              A scoring system was developed to provide a single metric that captures the overall performance and accessibility of broadband
+              in a census tract. The score creates a single <em>Broadband Score</em> by combining multiple variables from various datasets.
+              <br>
+              <br>
+              The datasets and fields used to calculate the score are viewable under <em>Broadband Data</em> by clicking on any census tract,
+              and their descriptions are available on
+              <a target="_blank" rel="noopener noreferrer"
+                href="https://github.com/adr383/Broad-band-State/blob/main/README.md">this Github repository
+              </a>.
+              <br>
+              <br>
+              Data values in those fields were split into quintiles and thus each census tract received a score of 1-5 based on the
+              average of the quintile it fell into for each field. For each variable and the score itself, a lower value indicates
+              worse performance and a higher value indicates better performance.
             </div>
-            <!-- <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="" id="checkbox" checked disabled>
-              <label class="form-check-label" for="flexCheckDisabled" style='font-size: 13.5px; font-style: italic'>
-                -9999
-              </label> -->
-              <!-- -9999 -->
-              <!-- <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16" data-toggle="tooltip" data-placement="top" data-html="true" title="Use for apples-to-apples comparison of broadband speeds from different sources">
-                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
-              </svg> -->
-            <!-- </div> -->
             <div class='my-legend' id="broadband-legend">
               <div class='legend-title'>Broadband/Demographic Data</div>
               <div class='legend-scale'>
@@ -220,7 +218,6 @@
                 Split map right
               </button>
               <div class="dropdown-menu" id="second-dropdown" aria-labelledby="dropdownMenuButton">
-                <!-- menu will be populated with JQuery  -->
                 <li><a class="dropdown-item" href="#">Ookla Download Speed</a></li>
                 <li><a class="dropdown-item" href="#">Ookla Upload Speed</a></li>
                 <!-- <li><a class="dropdown-item" href="#">M-Lab Throughput</a></li> -->

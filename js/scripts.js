@@ -590,11 +590,21 @@ $("#reset-button").click(function() {
 
   // reset broadband score description on right map controls
   document.getElementById("right-controls-title").innerHTML = `Broadband Score`;
-  document.getElementById("chart2").innerHTML = `Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-    sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-    nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
-    reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-    cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`;
+  document.getElementById("chart2").innerHTML = `A scoring system was developed to provide a single metric that captures the overall performance and accessibility of broadband
+    in a census tract. The score creates a single <em>Broadband Score</em> by combining multiple variables from various datasets.
+    <br>
+    <br>
+    The datasets and fields used to calculate the score are viewable under <em>Broadband Data</em> by clicking on any census tract,
+    and their descriptions are available on
+    <a target="_blank" rel="noopener noreferrer"
+      href="https://github.com/adr383/Broad-band-State/blob/main/README.md">this Github repository
+    </a>.
+    <br>
+    <br>
+    Data values in those fields were split into quintiles and thus each census tract received a score of 1-5 based on the
+    average of the quintile it fell into for each field. For each variable and the score itself, a lower value indicates
+    worse performance and a higher value indicates better performance.
+`;
 
   // reset variables
   first_var = 'Broadband Score';
