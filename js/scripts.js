@@ -54,8 +54,8 @@ checkbox = document.getElementById('checkbox');
 
 // variables to hold and edit our color schemes
 var sequential_colors = ['#8A8AFF','#5C5CFF','#2E2EFF','#0000FF','#0000A3']; //blue TRY VARYING SATURATION
-var diverging_colors = ['#ca0020','#f4a582','#ffffbf','#92c5de','#0571b0']; //['#d7191c','#fdae61','#ffffbf','#abd9e9','#2c7bb6'] //['#d7191c','#fdae61','#ffffbf','#a6d96a','#1a9641'] //red --> green TRY CHANGING TO BLUE
-var diverging_colors_transparent = ['#ca002080','#f4a58280','#ffffbf80','#92c5de80','#0571b080'];
+var diverging_colors = ['#ca0020','#f4a582','#ffffbf','#abdda4','#0571b0'] //['#d7191c','#fdae61','#ffffbf','#abdda4','#2b83ba'] //['#d7191c','#fdae61','#ffffbf','#a6d96a','#1a9641'] // ['#ca0020','#f4a582','#ffffbf','#92c5de','#0571b0'];
+var diverging_colors_transparent = ['#ca002080','#f4a58280','#ffffbf80','#abdda480','#0571b080'];
 
 // 'display column name for frontend of visualization': 'column name in data '
 var displayVal_to_colName = {
@@ -591,11 +591,10 @@ $("#reset-button").click(function() {
   // reset broadband score description on right map controls
   document.getElementById("right-controls-title").innerHTML = `Broadband Score`;
   document.getElementById("chart2").innerHTML = `A scoring system was developed to provide a single metric that captures the overall performance and accessibility of broadband
-    in a census tract. The score creates a single <em>Broadband Score</em> by combining multiple variables from various datasets.
+    in a census tract. The score creates a single <em>Broadband Score</em> by combining data fields from various datasets
+    after analysis & modeling.
     <br>
-    <br>
-    The datasets and fields used to calculate the score are viewable under <em>Broadband Data</em> by clicking on any census tract,
-    and their descriptions are available on
+    The data fields used to calculate the score and their descriptions are available on
     <a target="_blank" rel="noopener noreferrer"
       href="https://github.com/adr383/Broad-band-State/blob/main/README.md">this Github repository
     </a>.
@@ -604,6 +603,9 @@ $("#reset-button").click(function() {
     Data values in those fields were split into quintiles and thus each census tract received a score of 1-5 based on the
     average of the quintile it fell into for each field. For each variable and the score itself, a lower value indicates
     worse performance and a higher value indicates better performance.
+    <br>
+    <br>
+    <b>Blank census tracts indicate no Broadband Score due to a lack of data.</b>
 `;
 
   // reset variables
