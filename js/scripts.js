@@ -594,9 +594,9 @@ $("#reset-button").click(function() {
     in a census tract. The score creates a single <em>Broadband Score</em> by combining data fields from various datasets
     after analysis & modeling.
     <br>
-    The data fields used to calculate the score and their descriptions are available on
+    The full data dictionary containing fields used to calculate the score and all fields visualized is available on
     <a target="_blank" rel="noopener noreferrer"
-      href="https://github.com/adr383/Broad-band-State/blob/main/README.md">this Github repository
+      href="https://github.com/nys-broadband/broadband-map-nys">this Github repository
     </a>.
     <br>
     <br>
